@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 from pydantic import model_validator
 
-class Settings(BaseException):
+class Settings(BaseSettings):
     
     YOOMONEY_ACCESS_TOKEN : str
     YOOMONEY_RECEIVER : int
