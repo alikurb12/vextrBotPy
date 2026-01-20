@@ -1,0 +1,14 @@
+from dao.base import BaseDao
+from database.models.trades.models import Trades
+from database.database import async_session_maker
+from sqlalchemy import select
+
+class UsersDAO(BaseDao):
+    model = Trades
+
+    @classmethod
+    async def get_by_id(cls, trade_id):
+        async with async_session_maker() as session:
+            query = select(cls.model).filter_by(trade_id = trade_id)
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
