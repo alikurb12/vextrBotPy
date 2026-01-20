@@ -8,6 +8,9 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from database.database import Base
 from database.models.users.models import Users
+from database.models.trades.models import Trades
+from database.models.affiliate_applications.models import Affiliate_Applications
+from database.models.payments.models import Payments
 
 from alembic import context
 
