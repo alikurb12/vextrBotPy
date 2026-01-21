@@ -1,7 +1,7 @@
 from dao.base import BaseDao
 from database.models.payments.models import Payments
 from database.database import async_session_maker
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 class UsersDAO(BaseDao):
     model = Payments
@@ -12,3 +12,10 @@ class UsersDAO(BaseDao):
             query = select(cls.model).filter_by(invoice_id = invoice_id)
             result = await session.execute(query)
             return result.scalar_one_or_none()
+    
+    @classmethod
+    async def delete(cls, invoice_id : int):
+        async with async_session_maker() as session:
+            query = delete(cls.model).filter_by(invoice_id = invoice_id)
+            await session.execute(query)
+            await session.commit()
