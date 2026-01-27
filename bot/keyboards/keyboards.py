@@ -15,14 +15,11 @@ reset_api_keyboard = InlineKeyboardMarkup(
     ],
 )
 
-exchange_selection_keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="BingX")],
-        [KeyboardButton(text="OKX")],
-        [KeyboardButton(text="Bybit")],
-        [KeyboardButton(text="Bitget")],
+exchange_selection_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="BingX", callback_data="exchange_bingx")],
+        [InlineKeyboardButton(text="OKX", callback_data="exchange_okx")],
+        [InlineKeyboardButton(text="Bybit", callback_data="exchange_bybit")],   
+        [InlineKeyboardButton(text="Bitget", callback_data="exchange_bingx")],
     ],
-    resize_keyboard=True,
-    one_time_keyboard=True,
-    input_field_placeholder="Выберите биржу",
 )
