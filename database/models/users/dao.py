@@ -29,11 +29,25 @@ class UsersDAO(BaseDao):
     @classmethod
     async def add_or_update(cls, **kwargs):
         user_id = kwargs.get("user_id")
-        if user_id:
-            existing_user = await cls.get_by_id(user_id = user_id)
-            if existing_user:
-                for key, value in kwargs.items():
-                    setattr(existing_user, key, value)
-                return existing_user
         
-        return await cls.add(**kwargs)
+        async with async_session_maker() as session:
+            
+            if user_id:
+                query = select(cls.model).filter_by(user_id=user_id)
+                result = await session.execute(query)
+                existing_user = result.scalar_one_or_none()
+                
+                if existing_user:
+                    for key, value in kwargs.items():
+                        setattr(existing_user, key, value)
+                    
+                    session.add(existing_user)
+                    await session.commit()
+                    await session.refresh(existing_user)
+                    return existing_user
+            
+            new_user = cls.model(**kwargs)
+            session.add(new_user)
+            await session.commit()
+            await session.refresh(new_user)
+            return new_user
