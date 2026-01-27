@@ -9,11 +9,41 @@ router = Router()
 
 @router.callback_query(F.data == 'register')
 async def process_registration_callback(callback_query: CallbackQuery, state: FSMContext):
-    await state.set_state(RegistrationStates.waiting_for_exchange)
+    await state.set_state(RegistrationStates.waiting_for_subscription_type)
     await callback_query.message.edit_text(
-        "Пожалуйста, выберите биржу для регистрации API ключей.", 
+        "Пожалуйста, выберите тип подписки.", 
+        reply_markup=kb.subscription_selection_keyboard
+    )
+
+@router.callback_query(F.data == "subscription_standard")
+async def select_standard_subscription(callback_query: CallbackQuery, state: FSMContext):
+    await state.update_data(subscription_type="standard")
+    await state.set_state(RegistrationStates.waiting_for_exchange)
+    await callback_query.message.delete()
+    await callback_query.message.answer(
+        "Вы выбрали обычную подписку. Пожалуйста, выберите биржу:", 
         reply_markup=kb.exchange_selection_keyboard
-)
+    )
+    await callback_query.answer()
+
+@router.callback_query(F.data == "subscription_refferral")
+async def select_referral_subscription(callback_query: CallbackQuery, state: FSMContext):
+    await state.update_data(subscription_type="referral")
+    await state.set_state(RegistrationStates.waiting_for_uuid)
+    await callback_query.message.delete()
+    await callback_query.message.answer(
+        "Вы выбрали реферальную подписку. Пожалуйста, введите ваш UUID реферала:"
+    )
+    await callback_query.answer()
+
+@router.message(RegistrationStates.waiting_for_uuid)
+async def process_uuid(message: Message, state: FSMContext):
+    await state.update_data(refferal_uuid=message.text)
+    await state.set_state(RegistrationStates.waiting_for_exchange)
+    await message.answer(
+        "Спасибо! Теперь, пожалуйста, выберите биржу:", 
+        reply_markup=kb.exchange_selection_keyboard
+    )
 
 @router.callback_query(F.data == "exchange_bitget")
 async def select_binance(callback_query: CallbackQuery, state: FSMContext):
@@ -50,17 +80,25 @@ async def process_api_key(message: Message, state: FSMContext):
 async def process_secret_key(message: Message, state: FSMContext):
     await state.update_data(secret_key=message.text)
     user_data = await state.get_data()
-    if user_data['selected_exchange'] == 'OKX' or user_data['selected_exchange'] == 'Bybit':
+    
+    if user_data['selected_exchange'] in ['OKX', 'Bybit']:
         await state.set_state(RegistrationStates.waiting_for_passphrase)
         await message.answer("Пожалуйста, введите ваш Passphrase.")
     else:
-        await UsersDAO.add_or_update(
-            user_id=message.from_user.id,
-            exchange=user_data['selected_exchange'],
-            api_key=user_data['api_key'],
-            secret_key=user_data['secret_key']
-        )
-    
+        user_kwargs = {
+            'user_id': message.from_user.id,
+            'exchange': user_data['selected_exchange'],
+            'api_key': user_data['api_key'],
+            'secret_key': user_data['secret_key'],
+        }
+        
+        if 'refferal_uuid' in user_data:
+            user_kwargs['refferal_uuid'] = user_data['refferal_uuid']
+        
+        if 'subscription_type' in user_data:
+            user_kwargs['subscription_type'] = user_data['subscription_type']
+        
+        await UsersDAO.add_or_update(**user_kwargs)
         await state.clear()
         await message.answer("Регистрация завершена успешно!", reply_markup=kb.start_keyboard)
 
@@ -68,12 +106,21 @@ async def process_secret_key(message: Message, state: FSMContext):
 async def process_passphrase(message: Message, state: FSMContext):
     await state.update_data(passphrase=message.text)
     user_data = await state.get_data()
-    await UsersDAO.add_or_update(
-        user_id=message.from_user.id,
-        exchange=user_data['selected_exchange'],
-        api_key=user_data['api_key'],
-        secret_key=user_data['secret_key'],
-        passphrase=user_data['passphrase']
-    )
+    
+    user_kwargs = {
+        'user_id': message.from_user.id,
+        'exchange': user_data['selected_exchange'],
+        'api_key': user_data['api_key'],
+        'secret_key': user_data['secret_key'],
+        'passphrase': user_data['passphrase'],
+    }
+    
+    if 'refferal_uuid' in user_data:
+        user_kwargs['refferal_uuid'] = user_data['refferal_uuid']
+    
+    if 'subscription_type' in user_data:
+        user_kwargs['subscription_type'] = user_data['subscription_type']
+    
+    await UsersDAO.add_or_update(**user_kwargs)
     await state.clear()
     await message.answer("Регистрация завершена успешно!", reply_markup=kb.start_keyboard)

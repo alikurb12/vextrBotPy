@@ -17,9 +17,21 @@ reset_api_keyboard = InlineKeyboardMarkup(
 
 exchange_selection_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="BingX", callback_data="exchange_bingx")],
-        [InlineKeyboardButton(text="OKX", callback_data="exchange_okx")],
-        [InlineKeyboardButton(text="Bybit", callback_data="exchange_bybit")],   
-        [InlineKeyboardButton(text="Bitget", callback_data="exchange_bingx")],
+        [
+            InlineKeyboardButton(text="BingX", callback_data="exchange_bingx"), 
+            InlineKeyboardButton(text="OKX", callback_data="exchange_okx"),
+        ],
+        [
+            InlineKeyboardButton(text="Bybit", callback_data="exchange_bybit"),
+            InlineKeyboardButton(text="Bitget", callback_data="exchange_bingx"),    
+        ],   
+        
     ],
+)
+
+subscription_selection_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Обычная подписка", callback_data="subscription_standard")],
+        [InlineKeyboardButton(text="Реферальная подписка", callback_data="subscription_refferal")],
+    ]
 )
