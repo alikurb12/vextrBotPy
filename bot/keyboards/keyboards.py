@@ -35,3 +35,19 @@ subscription_selection_keyboard = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="Реферальная подписка", callback_data="subscription_refferal")],
     ]
 )
+
+def get_moderation_keyboard(user_id: int, chat_id: int, refferal_uuid: str):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Принять", 
+                    callback_data=f"approve:{user_id}:{chat_id}:{refferal_uuid}"
+                ),
+                InlineKeyboardButton(
+                    text="❌ Отклонить", 
+                    callback_data=f"reject:{user_id}:{chat_id}:{refferal_uuid}"
+                )
+            ]
+        ]
+    )

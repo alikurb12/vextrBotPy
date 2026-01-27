@@ -1,9 +1,10 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from states.states import RegistrationStates
 from aiogram.types import Message, CallbackQuery
 from database.models.users.dao import UsersDAO
 import keyboards.keyboards as kb
 from aiogram.fsm.context import FSMContext
+from config.config import settings
 
 router = Router()
 
@@ -26,24 +27,16 @@ async def select_standard_subscription(callback_query: CallbackQuery, state: FSM
     )
     await callback_query.answer()
 
-@router.callback_query(F.data == "subscription_refferral")
+@router.callback_query(F.data == "subscription_refferal")
 async def select_referral_subscription(callback_query: CallbackQuery, state: FSMContext):
     await state.update_data(subscription_type="referral")
-    await state.set_state(RegistrationStates.waiting_for_uuid)
+    await state.set_state(RegistrationStates.waiting_for_exchange)
     await callback_query.message.delete()
     await callback_query.message.answer(
-        "Вы выбрали реферальную подписку. Пожалуйста, введите ваш UUID реферала:"
-    )
-    await callback_query.answer()
-
-@router.message(RegistrationStates.waiting_for_uuid)
-async def process_uuid(message: Message, state: FSMContext):
-    await state.update_data(refferal_uuid=message.text)
-    await state.set_state(RegistrationStates.waiting_for_exchange)
-    await message.answer(
-        "Спасибо! Теперь, пожалуйста, выберите биржу:", 
+        "Вы выбрали реферальную подписку. Пожалуйста, выберите биржу:",
         reply_markup=kb.exchange_selection_keyboard
     )
+    await callback_query.answer()
 
 @router.callback_query(F.data == "exchange_bitget")
 async def select_binance(callback_query: CallbackQuery, state: FSMContext):
@@ -63,12 +56,44 @@ async def select_bingx(callback_query: CallbackQuery, state: FSMContext):
 
 async def process_exchange_selection_from_callback(callback_query: CallbackQuery, state: FSMContext, exchange_name: str):
     await state.update_data(selected_exchange=exchange_name)
-    await state.set_state(RegistrationStates.waiting_for_api_key)
+    await state.set_state(RegistrationStates.waiting_for_uuid)
     await callback_query.message.delete()
     await callback_query.message.answer(
-        f"Вы выбрали {exchange_name}. Пожалуйста, введите ваш API ключ:"
+        f"Вы выбрали {exchange_name}. Пожалуйста, введите ваш uuid:"
     )
     await callback_query.answer()
+
+@router.message(RegistrationStates.waiting_for_uuid)
+async def process_uuid(message: Message, state: FSMContext, bot: Bot):
+    await state.update_data(refferal_uuid=message.text)
+    user_data = await state.get_data()
+    refferal_uuid = user_data.get('refferal_uuid', message.text)
+    user_exchange = user_data.get('selected_exchange')
+    
+    await state.set_state(RegistrationStates.waiting_for_api_key)
+    
+    await bot.send_message(
+        chat_id=settings.MODERATOR_GROUP_ID, 
+        text= "🔄 НОВЫЙ ЗАПРОС НА РЕФЕРАЛЬНУЮ ПОДПИСКУ\n\n"
+            f"👤 Пользователь:\n"
+            f"• ID: {message.from_user.id}\n"
+            f"• Username: @{message.from_user.username or 'нет'}\n"
+            f"• Имя: {message.from_user.first_name}\n"
+            f"• Chat ID: {message.chat.id}\n\n"
+            f"💼 Биржа: {user_exchange}\n"
+            f"🔑 Реферальный UUID: <b>{refferal_uuid}</b>\n\n"
+            "Пожалуйста, одобрите или отклоните запрос.",
+            parse_mode="HTML",
+            reply_markup=kb.get_moderation_keyboard(
+                user_id=message.from_user.id,
+                chat_id=message.chat.id,
+                refferal_uuid=refferal_uuid
+            )
+        )
+    
+    await message.answer(
+        "Спасибо! Теперь нужно дождаться подтверждения модератора.", 
+    )
 
 @router.message(RegistrationStates.waiting_for_api_key)
 async def process_api_key(message: Message, state: FSMContext):
