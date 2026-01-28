@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from aiogram import Router, F, Bot
 from states.states import RegistrationStates
 from aiogram.types import Message, CallbackQuery
@@ -30,7 +31,7 @@ async def select_standard_subscription(callback_query: CallbackQuery, state: FSM
 
 @router.callback_query(F.data == "subscription_refferal")
 async def select_referral_subscription(callback_query: CallbackQuery, state: FSMContext):
-    await state.update_data(subscription_type="referral")
+    await state.update_data(subscription_type="refferal")
     await state.set_state(RegistrationStates.waiting_for_exchange)
     await callback_query.message.delete()
     await callback_query.message.answer(
@@ -137,6 +138,7 @@ async def process_secret_key(message: Message, state: FSMContext):
             'exchange': user_data['selected_exchange'],
             'api_key': user_data['api_key'],
             'secret_key': user_data['secret_key'],
+            'subscription_end': datetime.now() + timedelta(days=365),
         }
         
         if 'refferal_uuid' in user_data:
@@ -149,7 +151,7 @@ async def process_secret_key(message: Message, state: FSMContext):
         await state.clear()
         await message.answer(
             "Регистрация завершена успешно!", 
-            reply_markup=kb.start_keyboard
+            reply_markup=kb.after_registration_keyboard
         )
 
 @router.message(RegistrationStates.waiting_for_passphrase)
@@ -163,6 +165,7 @@ async def process_passphrase(message: Message, state: FSMContext):
         'api_key': user_data['api_key'],
         'secret_key': user_data['secret_key'],
         'passphrase': user_data['passphrase'],
+        'subscription_end': datetime.now() + timedelta(days=365),
     }
     
     if 'refferal_uuid' in user_data:
@@ -175,5 +178,5 @@ async def process_passphrase(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
         "Регистрация завершена успешно!",
-        reply_markup=kb.start_keyboard
+        reply_markup=kb.after_registration_keyboard
     )

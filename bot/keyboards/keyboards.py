@@ -51,3 +51,30 @@ def get_moderation_keyboard(user_id: int, chat_id: int, refferal_uuid: str):
             ]
         ]
     )
+
+after_registration_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Главное меню", callback_data="main_menu"),
+        ]
+    ],
+)
+
+main_menu_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📊 Мой статус", callback_data="my_status"),
+        ],
+        [
+            InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
+        ],
+    ],
+)
+
+my_status_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Сбросить API", callback_data="reset_api"),
+        ]
+    ],
+)
