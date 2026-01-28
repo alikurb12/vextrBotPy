@@ -12,6 +12,7 @@ router = Router()
 
 @router.callback_query(F.data == 'register')
 async def process_registration_callback(callback_query: CallbackQuery, state: FSMContext):
+    
     await state.set_state(RegistrationStates.waiting_for_subscription_type)
     await callback_query.message.edit_text(
         "Пожалуйста, выберите тип подписки.", 
@@ -20,10 +21,10 @@ async def process_registration_callback(callback_query: CallbackQuery, state: FS
 
 @router.callback_query(F.data == "subscription_standard")
 async def select_standard_subscription(callback_query: CallbackQuery, state: FSMContext):
+    
     await state.update_data(subscription_type="standard")
     await state.set_state(RegistrationStates.waiting_for_exchange)
-    await callback_query.message.delete()
-    await callback_query.message.answer(
+    await callback_query.message.edit_text(
         "Вы выбрали обычную подписку. Пожалуйста, выберите биржу:", 
         reply_markup=kb.exchange_selection_keyboard
     )
@@ -31,10 +32,11 @@ async def select_standard_subscription(callback_query: CallbackQuery, state: FSM
 
 @router.callback_query(F.data == "subscription_refferal")
 async def select_referral_subscription(callback_query: CallbackQuery, state: FSMContext):
+    
     await state.update_data(subscription_type="refferal")
     await state.set_state(RegistrationStates.waiting_for_exchange)
-    await callback_query.message.delete()
-    await callback_query.message.answer(
+
+    await callback_query.message.edit_text(
         "Вы выбрали реферальную подписку. Пожалуйста, выберите биржу:",
         reply_markup=kb.exchange_selection_keyboard
     )
@@ -43,6 +45,7 @@ async def select_referral_subscription(callback_query: CallbackQuery, state: FSM
 
 @router.callback_query(F.data == "exchange_bitget")
 async def select_binance(callback_query: CallbackQuery, state: FSMContext):
+    
     await send_video_instruction(
         callback_query, 
         "bitget.mp4", 
@@ -52,6 +55,7 @@ async def select_binance(callback_query: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "exchange_bybit")
 async def select_bybit(callback_query: CallbackQuery, state: FSMContext):
+    
     await send_video_instruction(
         callback_query, 
         "bybit.mp4", 
@@ -61,6 +65,7 @@ async def select_bybit(callback_query: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "exchange_okx")
 async def select_okx(callback_query: CallbackQuery, state: FSMContext):
+    
     await send_video_instruction(
         callback_query, 
         "okx.mp4", 
@@ -70,6 +75,7 @@ async def select_okx(callback_query: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "exchange_bingx")
 async def select_bingx(callback_query: CallbackQuery, state: FSMContext):
+    
     await send_video_instruction(
         callback_query, 
         "bingx.mp4", 
@@ -78,6 +84,7 @@ async def select_bingx(callback_query: CallbackQuery, state: FSMContext):
     await process_exchange_selection_from_callback(callback_query, state, "BingX")
 
 async def process_exchange_selection_from_callback(callback_query: CallbackQuery, state: FSMContext, exchange_name: str):
+    
     await state.update_data(selected_exchange=exchange_name)
     await state.set_state(RegistrationStates.waiting_for_uuid)
     await callback_query.message.delete()
@@ -88,6 +95,7 @@ async def process_exchange_selection_from_callback(callback_query: CallbackQuery
 
 @router.message(RegistrationStates.waiting_for_uuid)
 async def process_uuid(message: Message, state: FSMContext, bot: Bot):
+    
     await state.update_data(refferal_uuid=message.text)
     user_data = await state.get_data()
     refferal_uuid = user_data.get('refferal_uuid', message.text)
@@ -120,18 +128,21 @@ async def process_uuid(message: Message, state: FSMContext, bot: Bot):
 
 @router.message(RegistrationStates.waiting_for_api_key)
 async def process_api_key(message: Message, state: FSMContext):
+   
     await state.update_data(api_key=message.text)
     await state.set_state(RegistrationStates.waiting_for_secret_key)
     await message.answer("Пожалуйста, введите ваш Secret ключ.")
 
 @router.message(RegistrationStates.waiting_for_secret_key)
 async def process_secret_key(message: Message, state: FSMContext):
+   
     await state.update_data(secret_key=message.text)
     user_data = await state.get_data()
     
     if user_data['selected_exchange'] in ['OKX', 'Bybit']:
         await state.set_state(RegistrationStates.waiting_for_passphrase)
         await message.answer("Пожалуйста, введите ваш Passphrase.")
+   
     else:
         user_kwargs = {
             'user_id': message.from_user.id,
@@ -156,6 +167,7 @@ async def process_secret_key(message: Message, state: FSMContext):
 
 @router.message(RegistrationStates.waiting_for_passphrase)
 async def process_passphrase(message: Message, state: FSMContext):
+    
     await state.update_data(passphrase=message.text)
     user_data = await state.get_data()
     

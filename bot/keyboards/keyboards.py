@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 start_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -74,7 +74,8 @@ main_menu_keyboard = InlineKeyboardMarkup(
 my_status_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="Сбросить API", callback_data="reset_api"),
+            InlineKeyboardButton(text="🔙", callback_data="main_menu"),
+            InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
         ]
     ],
 )

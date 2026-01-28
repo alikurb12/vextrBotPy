@@ -10,7 +10,7 @@ router = Router()
 async def cmd_start(message: Message):
     existing_user = await UsersDAO.get_by_id(message.from_user.id)
     if existing_user:
-        await message.answer(f"Привет. C возвращением {message.from_user.first_name}!", reply_markup=kb.start_keyboard) 
+        await message.answer(f"Привет. C возвращением {message.from_user.first_name}!", reply_markup=kb.start_keyboard)
     else:
         await UsersDAO.add_or_update(
         user_id = message.from_user.id,
