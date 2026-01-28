@@ -5,6 +5,7 @@ from database.models.users.dao import UsersDAO
 import keyboards.keyboards as kb
 from aiogram.fsm.context import FSMContext
 from config.config import settings
+from utils.video_sender import send_video_instruction
 
 router = Router()
 
@@ -38,20 +39,41 @@ async def select_referral_subscription(callback_query: CallbackQuery, state: FSM
     )
     await callback_query.answer()
 
+
 @router.callback_query(F.data == "exchange_bitget")
 async def select_binance(callback_query: CallbackQuery, state: FSMContext):
+    await send_video_instruction(
+        callback_query, 
+        "bitget.mp4", 
+        "Инструкция по получению API ключей для Bitget."
+    )
     await process_exchange_selection_from_callback(callback_query, state, "Bitget")
 
 @router.callback_query(F.data == "exchange_bybit")
 async def select_bybit(callback_query: CallbackQuery, state: FSMContext):
+    await send_video_instruction(
+        callback_query, 
+        "bybit.mp4", 
+        "Инструкция по получению API ключей для Bybit."
+    )
     await process_exchange_selection_from_callback(callback_query, state, "Bybit")
 
 @router.callback_query(F.data == "exchange_okx")
 async def select_okx(callback_query: CallbackQuery, state: FSMContext):
+    await send_video_instruction(
+        callback_query, 
+        "okx.mp4", 
+        "Инструкция по получению API ключей для OKX."
+    )
     await process_exchange_selection_from_callback(callback_query, state, "OKX")
 
 @router.callback_query(F.data == "exchange_bingx")
 async def select_bingx(callback_query: CallbackQuery, state: FSMContext):
+    await send_video_instruction(
+        callback_query, 
+        "bingx.mp4", 
+        "Инструкция по получению API ключей для BingX."
+    )
     await process_exchange_selection_from_callback(callback_query, state, "BingX")
 
 async def process_exchange_selection_from_callback(callback_query: CallbackQuery, state: FSMContext, exchange_name: str):
@@ -125,7 +147,10 @@ async def process_secret_key(message: Message, state: FSMContext):
         
         await UsersDAO.add_or_update(**user_kwargs)
         await state.clear()
-        await message.answer("Регистрация завершена успешно!", reply_markup=kb.start_keyboard)
+        await message.answer(
+            "Регистрация завершена успешно!", 
+            reply_markup=kb.start_keyboard
+        )
 
 @router.message(RegistrationStates.waiting_for_passphrase)
 async def process_passphrase(message: Message, state: FSMContext):
@@ -148,4 +173,7 @@ async def process_passphrase(message: Message, state: FSMContext):
     
     await UsersDAO.add_or_update(**user_kwargs)
     await state.clear()
-    await message.answer("Регистрация завершена успешно!", reply_markup=kb.start_keyboard)
+    await message.answer(
+        "Регистрация завершена успешно!",
+        reply_markup=kb.start_keyboard
+    )

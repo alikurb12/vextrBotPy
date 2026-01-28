@@ -1,16 +1,23 @@
-# @dp.message(Command("get_video_bingx"))
-# async def get_photo(message: Message):
-#     current_dir = Path(__file__).parent
-#     video_path = current_dir / "videos" / "bingx.mp4"
+from pathlib import Path
+from aiogram.types import CallbackQuery, FSInputFile
 
-#     if not video_path.exists():
-#         await message.answer("Видео не найдено")
+current_dir = Path(__file__).parent
+
+async def send_video_instruction(callback_query: CallbackQuery, video_filename: str, caption: str):
+    video_path = current_dir / "videos" / video_filename
     
-#     try:
-#         video = FSInputFile(video_path)
-#         await message.answer_video(
-#             video=video,
-#             caption="Вот инструкция для подключение API из биржи BingX"
-#         )
-#     except Exception as e:
-#         await message.answer(f"Ошибка при отправке видео {e}")
+    if video_path.exists():
+        try:
+            video = FSInputFile(video_path)
+            await callback_query.message.answer_video(
+                video=video,
+                caption=caption
+            )
+        except Exception as e:
+            await callback_query.message.answer(
+                f"❌ Не удалось отправить видео: {str(e)[:100]}"
+            )
+    else:
+        await callback_query.message.answer(
+            f"❌ Файл инструкции не найден: {video_filename}"
+        )
