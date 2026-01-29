@@ -8,3 +8,7 @@ class RegistrationStates(StatesGroup):
     waiting_for_api_key = State()
     waiting_for_secret_key = State()
     waiting_for_passphrase = State()
+    waiting_for_payment = State()
+    waiting_for_email = State()
+    waiting_for_promo = State()
+    waiting_for_tariff = State()

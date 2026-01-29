@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from config.config import TARIFFS, settings
 
 start_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -76,6 +77,24 @@ my_status_kb = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(text="🔙", callback_data="main_menu"),
             InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
+        ]
+    ],
+)
+
+def get_tariffs_keyboard():
+    kb = InlineKeyboardMarkup(inline_keyboard=[])
+    for tariff_id, tariff in TARIFFS.items():
+        kb.inline_keyboard.append([InlineKeyboardButton(
+            text=f"{tariff['name']} – {tariff['price']}₽",
+            callback_data=f"tariff:{tariff_id}"
+        )])
+    kb.inline_keyboard.append([InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{settings.SUPPORT_CONTACT.lstrip('@')}")])
+    return kb
+
+promo_kode_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Пропустить", callback_data="skip_promo"),
         ]
     ],
 )

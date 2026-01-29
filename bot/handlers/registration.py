@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from aiogram import Router, F, Bot
-from states.states import RegistrationStates
+from bot.states.register_states import RegistrationStates
 from aiogram.types import Message, CallbackQuery
 from database.models.users.dao import UsersDAO
 import keyboards.keyboards as kb
@@ -23,12 +23,37 @@ async def process_registration_callback(callback_query: CallbackQuery, state: FS
 async def select_standard_subscription(callback_query: CallbackQuery, state: FSMContext):
     
     await state.update_data(subscription_type="standard")
-    await state.set_state(RegistrationStates.waiting_for_exchange)
+    await state.set_state(RegistrationStates.waiting_for_email)
     await callback_query.message.edit_text(
-        "Вы выбрали обычную подписку. Пожалуйста, выберите биржу:", 
-        reply_markup=kb.exchange_selection_keyboard
+        "Напишите ваш e-mail.\n"
+        "Отправляя e-mail, вы соглашаетесь с\n"
+        "<a href='https://www.vextr.ru/privacy'>Политикой конфиденциальности</a>\n"
+        "и <a href='https://www.vextr.ru/docs'>Политикой обработки персональных данных</a>",
+        parse_mode="HTML",
     )
     await callback_query.answer()
+
+@router.message(RegistrationStates.waiting_for_email)
+async def process_email(message: Message, state: FSMContext):
+    await state.update_data(email=message.text)
+    await state.set_state(RegistrationStates.waiting_for_promo)
+    await message.answer(
+        "Если у вас есть промокод, введите его сейчас. "
+        "Если нет, то нажмите на кнопку <b>'Пропустить'</b> ниже.",
+        reply_markup=kb.promo_code_keyboard,
+        parse_mode="HTML",
+    )
+
+@router.message(RegistrationStates.waiting_for_promo)
+async def process_promo_code(message: Message, state: FSMContext):
+    await state.update_data(promo_code=message.text)
+    await state.set_state(RegistrationStates.waiting_for_tariff)
+    await message.answer(
+        "Пожалуйста, выберите тариф:",
+        reply_markup=kb.get_tariff_selection_keyboard(),
+    )
+
+
 
 @router.callback_query(F.data == "subscription_refferal")
 async def select_referral_subscription(callback_query: CallbackQuery, state: FSMContext):
