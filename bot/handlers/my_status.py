@@ -22,7 +22,7 @@ async def show_my_status(callback_query: CallbackQuery):
     
     elif user_data.subscription_type == "standard":
         await callback_query.message.edit_text(
-            text="Ваш тип подписки: <h1>Платная</h1>\n"
+            text="Ваш тип подписки: <b>Платная</b>\n"
                  f"Дата окончания подписки: {date_str}\n",
             reply_markup=kb.my_status_kb,
             parse_mode="HTML"

@@ -7,7 +7,8 @@ yoomoney_client = Client(settings.YOOMONEY_ACCESS_TOKEN)
 def create_yoomoney_payment(user_id: int, amount: float, description: str):
     label = f"user_{user_id}_{uuid.uuid4().hex[:8]}"
     quickpay = Quickpay(
-        reciever = settings.YOOMONEY_RECEIVER,
+
+        receiver = settings.YOOMONEY_RECEIVER,
         quickpay_form="shop",
         targets=description,
         paymentType="SB",

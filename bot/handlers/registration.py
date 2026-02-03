@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from aiogram import Router, F, Bot
-from bot.states.register_states import RegistrationStates
+from states.register_states import RegistrationStates
 from aiogram.types import Message, CallbackQuery
 from database.models.users.dao import UsersDAO
 import keyboards.keyboards as kb
@@ -33,27 +33,6 @@ async def select_standard_subscription(callback_query: CallbackQuery, state: FSM
     )
     await callback_query.answer()
 
-@router.message(RegistrationStates.waiting_for_email)
-async def process_email(message: Message, state: FSMContext):
-    await state.update_data(email=message.text)
-    await state.set_state(RegistrationStates.waiting_for_promo)
-    await message.answer(
-        "Если у вас есть промокод, введите его сейчас. "
-        "Если нет, то нажмите на кнопку <b>'Пропустить'</b> ниже.",
-        reply_markup=kb.promo_code_keyboard,
-        parse_mode="HTML",
-    )
-
-@router.message(RegistrationStates.waiting_for_promo)
-async def process_promo_code(message: Message, state: FSMContext):
-    await state.update_data(promo_code=message.text)
-    await state.set_state(RegistrationStates.waiting_for_tariff)
-    await message.answer(
-        "Пожалуйста, выберите тариф:",
-        reply_markup=kb.get_tariff_selection_keyboard(),
-    )
-
-
 
 @router.callback_query(F.data == "subscription_refferal")
 async def select_referral_subscription(callback_query: CallbackQuery, state: FSMContext):
@@ -67,56 +46,6 @@ async def select_referral_subscription(callback_query: CallbackQuery, state: FSM
     )
     await callback_query.answer()
 
-
-@router.callback_query(F.data == "exchange_bitget")
-async def select_binance(callback_query: CallbackQuery, state: FSMContext):
-    
-    await send_video_instruction(
-        callback_query, 
-        "bitget.mp4", 
-        "Инструкция по получению API ключей для Bitget."
-    )
-    await process_exchange_selection_from_callback(callback_query, state, "Bitget")
-
-@router.callback_query(F.data == "exchange_bybit")
-async def select_bybit(callback_query: CallbackQuery, state: FSMContext):
-    
-    await send_video_instruction(
-        callback_query, 
-        "bybit.mp4", 
-        "Инструкция по получению API ключей для Bybit."
-    )
-    await process_exchange_selection_from_callback(callback_query, state, "Bybit")
-
-@router.callback_query(F.data == "exchange_okx")
-async def select_okx(callback_query: CallbackQuery, state: FSMContext):
-    
-    await send_video_instruction(
-        callback_query, 
-        "okx.mp4", 
-        "Инструкция по получению API ключей для OKX."
-    )
-    await process_exchange_selection_from_callback(callback_query, state, "OKX")
-
-@router.callback_query(F.data == "exchange_bingx")
-async def select_bingx(callback_query: CallbackQuery, state: FSMContext):
-    
-    await send_video_instruction(
-        callback_query, 
-        "bingx.mp4", 
-        "Инструкция по получению API ключей для BingX."
-    )
-    await process_exchange_selection_from_callback(callback_query, state, "BingX")
-
-async def process_exchange_selection_from_callback(callback_query: CallbackQuery, state: FSMContext, exchange_name: str):
-    
-    await state.update_data(selected_exchange=exchange_name)
-    await state.set_state(RegistrationStates.waiting_for_uuid)
-    await callback_query.message.delete()
-    await callback_query.message.answer(
-        f"Вы выбрали {exchange_name}. Пожалуйста, введите ваш uuid:"
-    )
-    await callback_query.answer()
 
 @router.message(RegistrationStates.waiting_for_uuid)
 async def process_uuid(message: Message, state: FSMContext, bot: Bot):
@@ -151,6 +80,7 @@ async def process_uuid(message: Message, state: FSMContext, bot: Bot):
         "Спасибо! Теперь нужно дождаться подтверждения модератора.", 
     )
 
+
 @router.message(RegistrationStates.waiting_for_api_key)
 async def process_api_key(message: Message, state: FSMContext):
    
@@ -158,30 +88,38 @@ async def process_api_key(message: Message, state: FSMContext):
     await state.set_state(RegistrationStates.waiting_for_secret_key)
     await message.answer("Пожалуйста, введите ваш Secret ключ.")
 
+
 @router.message(RegistrationStates.waiting_for_secret_key)
 async def process_secret_key(message: Message, state: FSMContext):
    
     await state.update_data(secret_key=message.text)
     user_data = await state.get_data()
+    print(user_data)
     
     if user_data['selected_exchange'] in ['OKX', 'Bybit']:
         await state.set_state(RegistrationStates.waiting_for_passphrase)
         await message.answer("Пожалуйста, введите ваш Passphrase.")
    
     else:
-        user_kwargs = {
-            'user_id': message.from_user.id,
-            'exchange': user_data['selected_exchange'],
-            'api_key': user_data['api_key'],
-            'secret_key': user_data['secret_key'],
-            'subscription_end': datetime.now() + timedelta(days=365),
-        }
-        
-        if 'refferal_uuid' in user_data:
-            user_kwargs['refferal_uuid'] = user_data['refferal_uuid']
-        
-        if 'subscription_type' in user_data:
-            user_kwargs['subscription_type'] = user_data['subscription_type']
+        if user_data['subscription_type'] == 'refferal':
+            user_kwargs = {
+                'user_id': message.from_user.id,
+                'exchange': user_data['selected_exchange'],
+                'api_key': user_data['api_key'],
+                'secret_key': user_data['secret_key'],
+                'subscription_end': datetime.now() + timedelta(days=365),
+                'subscription_type': 'refferal',
+                'refferal_uuid': user_data['refferal_uuid'],
+            }
+        else:
+            user_kwargs = {
+                'user_id': message.from_user.id,
+                'exchange': user_data['selected_exchange'],
+                'api_key': user_data['api_key'],
+                'secret_key': user_data['secret_key'],
+                'subscription_end': datetime.now() + timedelta(days=user_data['tariff_days']),
+                'subscription_type': 'standard',
+            }
         
         await UsersDAO.add_or_update(**user_kwargs)
         await state.clear()
@@ -190,26 +128,32 @@ async def process_secret_key(message: Message, state: FSMContext):
             reply_markup=kb.after_registration_keyboard
         )
 
+
 @router.message(RegistrationStates.waiting_for_passphrase)
 async def process_passphrase(message: Message, state: FSMContext):
     
     await state.update_data(passphrase=message.text)
     user_data = await state.get_data()
     
-    user_kwargs = {
-        'user_id': message.from_user.id,
-        'exchange': user_data['selected_exchange'],
-        'api_key': user_data['api_key'],
-        'secret_key': user_data['secret_key'],
-        'passphrase': user_data['passphrase'],
-        'subscription_end': datetime.now() + timedelta(days=365),
-    }
-    
-    if 'refferal_uuid' in user_data:
-        user_kwargs['refferal_uuid'] = user_data['refferal_uuid']
-    
-    if 'subscription_type' in user_data:
-        user_kwargs['subscription_type'] = user_data['subscription_type']
+    if user_data['subscription_type'] == 'refferal':
+        user_kwargs = {
+            'user_id': message.from_user.id,
+            'exchange': user_data['selected_exchange'],
+            'api_key': user_data['api_key'],
+            'secret_key': user_data['secret_key'],
+            'subscription_end': datetime.now() + timedelta(days=365),
+            'subscription_type': 'refferal',
+            'refferal_uuid': user_data['refferal_uuid'],
+        }
+    else:
+        user_kwargs = {
+            'user_id': message.from_user.id,
+            'exchange': user_data['selected_exchange'],
+            'api_key': user_data['api_key'],
+            'secret_key': user_data['secret_key'],
+            'subscription_end': datetime.now() + timedelta(days=user_data['tariff_days']),
+            'subscription_type': 'standard',
+        }
     
     await UsersDAO.add_or_update(**user_kwargs)
     await state.clear()

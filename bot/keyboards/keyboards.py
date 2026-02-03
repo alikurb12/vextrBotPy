@@ -81,7 +81,7 @@ my_status_kb = InlineKeyboardMarkup(
     ],
 )
 
-def get_tariffs_keyboard():
+def get_tariff_selection_keyboard():
     kb = InlineKeyboardMarkup(inline_keyboard=[])
     for tariff_id, tariff in TARIFFS.items():
         kb.inline_keyboard.append([InlineKeyboardButton(
@@ -91,10 +91,22 @@ def get_tariffs_keyboard():
     kb.inline_keyboard.append([InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{settings.SUPPORT_CONTACT.lstrip('@')}")])
     return kb
 
-promo_kode_keyboard = InlineKeyboardMarkup(
+promo_code_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(text="Пропустить", callback_data="skip_promo"),
         ]
     ],
 )
+
+def get_check_payment_keyboard(label: str):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Проверить оплату", 
+                    callback_data=f"check_payment:{label}"
+                )
+            ]
+        ]
+    )
