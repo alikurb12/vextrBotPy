@@ -1,8 +1,8 @@
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from config.config import TARIFFS
-from utils.create_check_payment import create_yoomoney_payment, check_yoomoney_payment
+from utils.create_check_payment import create_yoomoney_payment
 import keyboards.keyboards as kb 
 
 router = Router()

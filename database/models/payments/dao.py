@@ -3,7 +3,7 @@ from database.models.payments.models import Payments
 from database.database import async_session_maker
 from sqlalchemy import select, delete
 
-class UsersDAO(BaseDao):
+class PaymentsDAO(BaseDao):
     model = Payments
 
     @classmethod

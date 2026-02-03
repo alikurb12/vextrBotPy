@@ -6,7 +6,7 @@ from database.models.users.dao import UsersDAO
 import keyboards.keyboards as kb
 from aiogram.fsm.context import FSMContext
 from config.config import settings
-from utils.video_sender import send_video_instruction
+from database.models.payments.dao import PaymentsDAO
 
 router = Router()
 
@@ -110,7 +110,8 @@ async def process_secret_key(message: Message, state: FSMContext):
                 'subscription_end': datetime.now() + timedelta(days=365),
                 'subscription_type': 'refferal',
                 'refferal_uuid': user_data['refferal_uuid'],
-            }
+            }    
+            await UsersDAO.add_or_update(**user_kwargs)
         else:
             user_kwargs = {
                 'user_id': message.from_user.id,
@@ -120,8 +121,17 @@ async def process_secret_key(message: Message, state: FSMContext):
                 'subscription_end': datetime.now() + timedelta(days=user_data['tariff_days']),
                 'subscription_type': 'standard',
             }
+            
+            await UsersDAO.add_or_update(**user_kwargs)
+            await PaymentsDAO.add(
+                user_id = message.from_user.id,
+                amount = user_data.get("tariff_price"),
+                tariff_id = user_data.get("tariff_id"),
+                status = "confirmed",
+                currency = "RUB",
+                yoomoney_label = user_data.get("label")
+            )
         
-        await UsersDAO.add_or_update(**user_kwargs)
         await state.clear()
         await message.answer(
             "Регистрация завершена успешно!", 
@@ -145,6 +155,7 @@ async def process_passphrase(message: Message, state: FSMContext):
             'subscription_type': 'refferal',
             'refferal_uuid': user_data['refferal_uuid'],
         }
+        await UsersDAO.add_or_update(**user_kwargs)
     else:
         user_kwargs = {
             'user_id': message.from_user.id,
@@ -154,8 +165,15 @@ async def process_passphrase(message: Message, state: FSMContext):
             'subscription_end': datetime.now() + timedelta(days=user_data['tariff_days']),
             'subscription_type': 'standard',
         }
-    
-    await UsersDAO.add_or_update(**user_kwargs)
+        await UsersDAO.add_or_update(**user_kwargs)
+        await PaymentsDAO.add(
+                user_id = message.from_user.id,
+                amount = user_data.get("tariff_price"),
+                tariff_id = user_data.get("tariff_id"),
+                status = "confirmed",
+                currency = "RUB",
+                yoomoney_label = user_data.get("label")
+            )
     await state.clear()
     await message.answer(
         "Регистрация завершена успешно!",
