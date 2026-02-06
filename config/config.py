@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     MODERATOR_GROUP_ID : str
     SUPPORT_CONTACT : str
 
+    BINGX_API_URL : str
+
     DB_HOST : str
     DB_NAME : str
     DB_USER : str
