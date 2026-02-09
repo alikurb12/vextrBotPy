@@ -22,5 +22,3 @@ async def get_symbol_info(symbol: str) -> dict:
     except Exception as e:
         print(f"Ошибка при получении информации о символе: {e}")
         raise
-
-#gurle da inni gurle da
