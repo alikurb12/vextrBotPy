@@ -3,5 +3,3 @@ test.py
 test_get_balance.py
 test_time_bingx.py
 test_getting_price.py
-test_get_symbol_info.py
-test_get_open_orders.py
