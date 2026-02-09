@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     
     DATABASE_URL : str | None = None
 
-    LEVERAGE_LEVEL = 5
+    LEVERAGE_LEVEL : int
 
     @model_validator(mode="after")
     def get_database_url(self):
