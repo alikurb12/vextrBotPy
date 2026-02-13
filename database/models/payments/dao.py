@@ -1,4 +1,4 @@
-from dao.base import BaseDao
+from database.dao.base import BaseDao
 from database.models.payments.models import Payments
 from database.database import async_session_maker
 from sqlalchemy import select, delete

@@ -1,9 +1,9 @@
-from dao.base import BaseDao
+from database.dao.base import BaseDao
 from database.models.trades.models import Trades
 from database.database import async_session_maker
 from sqlalchemy import select, delete
 
-class UsersDAO(BaseDao):
+class TradesDAO(BaseDao):
     model = Trades
 
     @classmethod

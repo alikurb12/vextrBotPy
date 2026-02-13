@@ -1,4 +1,4 @@
-from dao.base import BaseDao
+from database.dao.base import BaseDao
 from database.models.users.models import Users
 from database.database import async_session_maker
 from sqlalchemy import select, delete
