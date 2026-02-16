@@ -36,7 +36,7 @@ async def create_main_order(
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient() as client:
             response = await client.post(url=url, headers=headers)
             data = response.json()
             if data.get("code") != 0:
