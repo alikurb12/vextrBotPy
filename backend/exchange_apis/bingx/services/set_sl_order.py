@@ -18,7 +18,7 @@ async def set_sl_order(
             "type": "STOP_MARKET",
             "symbol" : symbol,
             "side" : side,
-            "positionSide" : "LONG" if side=="SELL" else "SHORT",
+            "positionSide" : "LONG" if side=="BUY" else "SHORT",
             "quantity" : quantity,
             "stopPrice" : price,
             "timestamp" : int(time.time() * 1000),

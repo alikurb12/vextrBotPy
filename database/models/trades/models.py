@@ -1,12 +1,12 @@
-from sqlalchemy import Integer, String, Column, DateTime, Float, ForeignKey
+from sqlalchemy import BIGINT, Integer, String, Column, DateTime, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from database.database import Base
 
 class Trades(Base):
     __tablename__ = "trades"
 
-    trade_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
+    trade_id = Column(BIGINT, primary_key=True)
+    user_id = Column(BIGINT, ForeignKey("users.user_id"))
     order_id = Column(String)
     symbol = Column(String)
     side = Column(String)

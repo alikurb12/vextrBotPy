@@ -5,7 +5,7 @@ from backend.exchange_apis.bingx.services.parseParam import parseParam
 from backend.exchange_apis.bingx.services.get_sign import get_sign
 from config.config import settings
 
-INSUFFICIENT_MARGIN_CODES = {80012, 80013, 80014, 101400, 101401}
+INSUFFICIENT_MARGIN_CODES = {80012, 80013, 80014, 101400, 101401, 110422}
 
 
 async def _place_single_tp_order(
@@ -23,7 +23,7 @@ async def _place_single_tp_order(
         "type": "TAKE_PROFIT_MARKET",
         "symbol": symbol,
         "side": side,
-        "positionSide": "LONG" if side == "SELL" else "SHORT",
+        "positionSide": "LONG" if side == "BUY" else "SHORT",
         "quantity": quantity,
         "stopPrice": price,
         "timestamp": int(time.time() * 1000),

@@ -6,8 +6,8 @@ import time
 
 async def set_leverage(
         symbol : str,
-        side : str,
         api_key : str,
+        side : str,
         secret_key : str,
 ):
     leverage = settings.LEVERAGE_LEVEL
@@ -16,7 +16,7 @@ async def set_leverage(
         path = "/openApi/swap/v2/trade/leverage"
         paramsMap = {
             "symbol" : symbol,
-            "side" : side,
+            "side" : "LONG" if side=="BUY" else "SHORT",
             "timestamp" : int(time.time() * 1000),
             "leverage" : leverage
         }
