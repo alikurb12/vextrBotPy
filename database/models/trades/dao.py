@@ -19,3 +19,18 @@ class TradesDAO(BaseDao):
             query = delete(cls.model).filter_by(trade_id = trade_id)
             await session.execute(query)
             await session.commit()
+    
+    @classmethod
+    async def update(cls, trade_id : int, **kwargs):
+        async with async_session_maker() as session:
+            query = select(cls.model).filter_by(trade_id = trade_id)
+            result = await session.execute(query)
+            trade = result.scalar_one_or_none()
+            if not trade:
+                return None
+            for key, value in kwargs.items():
+                setattr(trade, key, value)
+            session.add(trade)
+            await session.commit()
+            await session.refresh(trade)
+            return trade

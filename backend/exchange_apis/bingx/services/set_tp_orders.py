@@ -5,7 +5,7 @@ from backend.exchange_apis.bingx.services.parseParam import parseParam
 from backend.exchange_apis.bingx.services.get_sign import get_sign
 from config.config import settings
 
-INSUFFICIENT_MARGIN_CODES = {80012, 80013, 80014, 101400, 101401, 110422}
+INSUFFICIENT_MARGIN_CODES = {80012, 80013, 80014, 101400, 101401, 110422, 110424}
 
 
 async def _place_single_tp_order(

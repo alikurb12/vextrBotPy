@@ -1,6 +1,3 @@
-import asyncio
-from typing import Optional
-import datetime
 from database.models.users.dao import UsersDAO
 from database.models.trades.dao import TradesDAO
 from backend.exchange_apis.bingx.services.get_balance import get_balance
@@ -8,6 +5,8 @@ from backend.exchange_apis.bingx.services.create_main_order import create_main_o
 from backend.exchange_apis.bingx.services.set_leverage import set_leverage
 from backend.exchange_apis.bingx.services.set_sl_order import set_sl_order
 from backend.exchange_apis.bingx.services.set_tp_orders import set_tp_orders
+from backend.exchange_apis.bingx.services.move_sl_to_breakeven import move_sl_to_breakeven
+import datetime
 
 async def get_users_balances():
     users = await UsersDAO.get_all()
@@ -16,7 +15,7 @@ async def get_users_balances():
         return
     for i, user in enumerate(users, 1):
         if not user.api_key or not user.secret_key:
-            print(f"У пользователя '{user.usename}' нет АПИ и/или Секрет ключей")
+            print(f"У пользователя id = {user.user_id}'; username = '{user.usename}' нет АПИ и/или Секрет ключей")
             continue
         try:
             user_balance = await get_balance(user.api_key, user.secret_key)
@@ -38,19 +37,11 @@ async def open_position_for_all_users(
     
     for i, user in enumerate(users, 1):
         if not user.api_key or not user.secret_key:
-            print(f"У пользователя '{user.usename}' нет АПИ и/или Секрет ключей")
+            print(f"У пользователя id = {user.user_id}'; username = '{user.usename}' нет АПИ и/или Секрет ключей")
             continue
         try:
             user_balance = await get_balance(user.api_key, user.secret_key)
             user_balance = float(user_balance.get('data').get('data').get('balance').get('balance'))
-            order = await create_main_order(
-                symbol=symbol,
-                api_key = user.api_key,
-                secret_key = user.secret_key,
-                side=side,
-                quantity=user_balance*0.1,
-            )
-            print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
             
             await set_leverage(
                 symbol=symbol,
@@ -59,6 +50,16 @@ async def open_position_for_all_users(
                 secret_key = user.secret_key,
             )
             print("Выставлено 5х плечо для сделки")
+            
+            order = await create_main_order(
+                symbol=symbol,
+                api_key = user.api_key,
+                secret_key = user.secret_key,
+                side=side,
+                quantity=user_balance*0.05 * 10, 
+            )
+            print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
+            
 
             sl_order = await set_sl_order(
                 api_key = user.api_key,
@@ -66,8 +67,9 @@ async def open_position_for_all_users(
                 symbol = symbol,
                 price = stop_loss,
                 side = side,
-                quantity = float(order.get("order").get("quantity")),
+                quantity=float(order.get("order").get("executedQty")),
             )
+            
             print(f"Выставление стоп-лосса для пользователя id={user.user_id}")
 
             tp_orders = await set_tp_orders(
@@ -88,7 +90,7 @@ async def open_position_for_all_users(
                 position_side = order.get("order").get("positionSide"),
                 quantity = float(order.get("order").get("quantity")),
                 entry_price = float(order.get("order").get("avgPrice")),
-                status = order.get("order").get("status"),
+                status = "open",
                 created_at = datetime.datetime.now(),
                 exchange = user.exchange,
                 stop_loss = stop_loss,
@@ -106,3 +108,39 @@ async def open_position_for_all_users(
             print("Запись по открытой сделке добавлено в БД")
         except Exception as e:
             print(f"Ошибка при открытии сделки: {e}")
+
+
+async def move_sl_to_breakeven_for_all_users(
+        symbol : str,
+):
+    users = await UsersDAO.get_all()
+    if not users:
+        print("Нет активных пользователей")
+    
+    for i, user in enumerate(users, 1):
+        if not user.api_key or not user.secret_key:
+            print(f"У пользователя id = {user.user_id}'; username = '{user.usename}' нет АПИ и/или Секрет ключей")
+            continue
+        try:
+            trades = await TradesDAO.get_all(user_id=user.user_id, symbol=symbol, status="open")
+            if not trades:
+                print(f"У пользователя id='{user.user_id}' нет открытых сделок по '{symbol}'")
+                continue
+            for trade in trades:
+                await move_sl_to_breakeven(
+                    api_key = user.api_key,
+                    secret_key = user.secret_key,
+                    symbol = trade.symbol,
+                    side = trade.side,
+                    quantity = trade.quantity,
+                    entry_price = trade.entry_price,
+                    sl_order_id = int(trade.sl_order_id),
+                )
+                print(f"SL успешно перемещён в безубыток для сделки id='{trade.trade_id}' пользователя id='{user.user_id}'")
+                TradesDAO.update(
+                    trade_id = trade.trade_id,
+                    stop_loss = trade.entry_price,
+                    sl_order_id = None,
+                )
+        except Exception as e:
+            print(f"Ошибка при перемещении SL в безубыток для пользователя id='{user.user_id}': {e}")

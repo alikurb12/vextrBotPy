@@ -24,7 +24,8 @@ async def create_main_order(
             "type": "MARKET",
             "quantity": str(quantity),
             "timestamp": int(time.time() * 1000),
-            "clientOrderID": client_order_id
+            "clientOrderID": client_order_id,
+            
         }
         paramsStr = await parseParam(paramsMap=paramsMap)
         
@@ -43,6 +44,7 @@ async def create_main_order(
                 error_msg = data.get("msg", "Unknown error")
                 print(f"Детали ошибки: {data}")
                 raise ValueError(f"Ошибка при открытии сделки: {error_msg}")
+            print(data)
             return data.get("data")
     
     except Exception as e:
