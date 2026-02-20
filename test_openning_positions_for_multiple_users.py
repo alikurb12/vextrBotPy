@@ -9,11 +9,22 @@ if __name__ == "__main__":
     asyncio.run(open_position_for_all_users(
         symbol="XRP-USDT",
         side="BUY",
-        stop_loss=1.35,
+        stop_loss=1.3,
         take_profit_1=1.5,
         take_profit_2=1.6,
         take_profit_3=1.7,
     ))
+
+
+# if __name__ == "__main__":
+#     asyncio.run(open_position_for_all_users(
+#         symbol="XRP-USDT",
+#         side="SELL",
+#         stop_loss=1.5,
+#         take_profit_1=1.3,
+#         take_profit_2=1.2,
+#         take_profit_3=1.1,
+#     ))
 
 
 # if __name__ == "__main__":

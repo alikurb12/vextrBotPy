@@ -44,7 +44,6 @@ async def create_main_order(
                 error_msg = data.get("msg", "Unknown error")
                 print(f"Детали ошибки: {data}")
                 raise ValueError(f"Ошибка при открытии сделки: {error_msg}")
-            print(data)
             return data.get("data")
     
     except Exception as e:

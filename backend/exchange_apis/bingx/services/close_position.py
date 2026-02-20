@@ -23,10 +23,8 @@ async def close_position(
             pos_symbol = position.get("symbol")
             if pos_symbol == symbol:
                 target_position = position
-                print(target_position)
                 break
         if not target_position:
-            print("Нет такой открытой позиции")
             return None
         
         position_id = target_position.get("positionId")

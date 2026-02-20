@@ -6,6 +6,7 @@ from backend.exchange_apis.bingx.services.set_leverage import set_leverage
 from backend.exchange_apis.bingx.services.set_sl_order import set_sl_order
 from backend.exchange_apis.bingx.services.set_tp_orders import set_tp_orders
 from backend.exchange_apis.bingx.services.move_sl_to_breakeven import move_sl_to_breakeven
+from backend.exchange_apis.bingx.services.close_position import close_position
 import datetime
 
 async def get_users_balances():
@@ -40,6 +41,21 @@ async def open_position_for_all_users(
             print(f"У пользователя id = {user.user_id}'; username = '{user.usename}' нет АПИ и/или Секрет ключей")
             continue
         try:
+            existing_trades = await TradesDAO.get_all(user_id=user.user_id, symbol=symbol, status="open")
+            if existing_trades:
+                for trade in existing_trades:
+                    print(f"У пользователя id='{user.user_id}' уже есть открытая сделка по '{symbol}'. Переворачиваем сделку")
+                    try:
+                        await close_position(
+                            api_key=user.api_key,
+                            secret_key=user.secret_key,
+                            symbol=symbol,
+                        )
+                        print(f"Сделка id='{trade.trade_id}' пользователя id='{user.user_id}' успешно закрыта.")
+                        await TradesDAO.delete(trade_id=trade.trade_id)
+                    except Exception as e:
+                        print(f"Ошибка при закрытии сделки пользователя id='{user.user_id}': {e}")
+                        continue
             user_balance = await get_balance(user.api_key, user.secret_key)
             user_balance = float(user_balance.get('data').get('data').get('balance').get('balance'))
             
@@ -141,6 +157,7 @@ async def move_sl_to_breakeven_for_all_users(
                     trade_id = trade.trade_id,
                     stop_loss = trade.entry_price,
                     sl_order_id = None,
+                    status = "sl_moved_to_breakeven",
                 )
         except Exception as e:
             print(f"Ошибка при перемещении SL в безубыток для пользователя id='{user.user_id}': {e}")
