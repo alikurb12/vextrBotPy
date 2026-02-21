@@ -3,12 +3,10 @@ import logging
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-from config.config import settings
-from aiogram import Bot, Dispatcher
+from instance import bot
+from aiogram import Dispatcher
 from handlers import get_all_routers
 
-bot = Bot(token=settings.BOT_TOKEN)
 dp = Dispatcher()
 
 async def main():
