@@ -224,9 +224,3 @@ Receives trading signals from TradingView.
 ```bash
 python -m pytest tests/
 ```
-
----
-
-## 📄 License
-
-MIT
