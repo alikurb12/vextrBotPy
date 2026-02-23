@@ -113,3 +113,11 @@ def get_check_payment_keyboard(label: str):
             ]
         ]
     )
+
+my_status_kb_after_signal = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Главное меню", callback_data="main_menu_after_signal"),
+        ],
+    ]
+)

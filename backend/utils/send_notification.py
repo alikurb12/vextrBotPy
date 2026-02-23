@@ -1,7 +1,7 @@
 from aiogram import Bot
 from config.config import settings
 from database.models.users.dao import UsersDAO
-
+from bot.keyboards import keyboards as kb
 bot = Bot(token=settings.BOT_TOKEN)
 
 async def notify_users_position_opened(symbol: str, side: str, entry_price: float, stop_loss: float, take_profit_1: float, take_profit_2: float, take_profit_3: float):
@@ -24,7 +24,10 @@ async def notify_users_position_opened(symbol: str, side: str, entry_price: floa
     for user in users:
         if user.chat_id:
             try:
-                await bot.send_message(chat_id=user.chat_id, text=message, parse_mode="HTML")
+                await bot.send_message(chat_id=user.chat_id, 
+                                       text=message, 
+                                       parse_mode="HTML", 
+                                       reply_markup=kb.my_status_kb_after_signal)
             except Exception as e:
                 print(f"Ошибка отправки уведомления пользователю id='{user.user_id}': {e}")
 
@@ -42,6 +45,6 @@ async def notify_users_sl_moved_to_breakeven(symbol: str):
     for user in users:
         if user.chat_id:
             try:
-                await bot.send_message(chat_id=user.chat_id, text=message, parse_mode="HTML")
+                await bot.send_message(chat_id=user.chat_id, text=message, parse_mode="HTML", reply_markup=kb.my_status_kb_after_signal)
             except Exception as e:
                 print(f"Ошибка отправки уведомления пользователю id='{user.user_id}': {e}")

@@ -40,3 +40,4 @@ async def show_main_menu(callback_query: CallbackQuery):
             f"Ошибка при получении открытых позиций: {e}",
             reply_markup=kb.main_menu_keyboard
         )
+

@@ -10,3 +10,10 @@ async def show_main_menu(callback_query: CallbackQuery):
         "Вы в главном меню. Пожалуйста, выберите действие:", 
         reply_markup=kb.main_menu_keyboard
     )
+
+@router.callback_query(F.data == "main_menu_after_signal")
+async def show_main_menu_after_signal(callback_query: CallbackQuery):
+    await callback_query.message.answer(
+        "Вы в главном меню. Пожалуйста, выберите действие:", 
+        reply_markup=kb.main_menu_keyboard
+    )
