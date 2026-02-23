@@ -64,10 +64,13 @@ after_registration_keyboard = InlineKeyboardMarkup(
 main_menu_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="📊 Мой статус", callback_data="my_status"),
+            InlineKeyboardButton(text="👤 Мой статус", callback_data="my_status"),
         ],
         [
             InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
+        ],
+        [
+            InlineKeyboardButton(text="📊 Открытые позиции", callback_data="get_my_positions")
         ],
     ],
 )

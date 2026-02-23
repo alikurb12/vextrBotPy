@@ -10,6 +10,7 @@ from .get_payment import router as get_payment_router
 from .check_payment import router as check_payment_router
 from .process_promo_code import router as process_promo_code_router
 from .process_exchange_selection import router as process_exchange_selection_router
+from .get_my_positions import router as get_my_positions_router
 
 
 def get_all_routers():
@@ -26,4 +27,5 @@ def get_all_routers():
         process_email_router,
         process_promo_code_router,
         process_exchange_selection_router,
+        get_my_positions_router,
     ]
