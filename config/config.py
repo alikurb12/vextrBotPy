@@ -19,6 +19,8 @@ class Settings(BaseSettings):
 
     BINGX_API_URL : str
 
+    OKX_FLAG : str
+
     DB_HOST : str
     DB_NAME : str
     DB_USER : str
