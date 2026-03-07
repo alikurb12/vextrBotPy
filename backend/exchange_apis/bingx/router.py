@@ -10,7 +10,7 @@ from backend.exchange_apis.bingx.services.close_position import close_position
 import datetime
 
 async def get_users_balances():
-    users = await UsersDAO.get_all()
+    users = await UsersDAO.get_all(exchange="bingx")
     if not users:
         print("Нет активных пользователей")
         return
@@ -32,7 +32,7 @@ async def open_position_for_all_users(
         take_profit_2 : float,
         take_profit_3 : float,
 ):
-    users = await UsersDAO.get_all()
+    users = await UsersDAO.get_all(exchange="bingx")
     if not users:
         print("Нет активных пользователей")
     
@@ -129,7 +129,7 @@ async def open_position_for_all_users(
 async def move_sl_to_breakeven_for_all_users(
         symbol : str,
 ):
-    users = await UsersDAO.get_all()
+    users = await UsersDAO.get_all(exchange="bingx")
     if not users:
         print("Нет активных пользователей")
     
