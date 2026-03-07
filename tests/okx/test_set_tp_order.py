@@ -3,7 +3,7 @@ import sys
 sys.path.append('.')
 
 # Импортируем вашу функцию
-from backend.exchange_apis.okx.services.set_tp_order import set_tp_order # замените на правильный путь
+from backend.exchange_apis.okx.services.set_tp_order import set_tp_orders # замените на правильный путь
 
 async def test_your_function():
     print("🧪 Тестирование вашей функции set_tp_order")
@@ -20,7 +20,7 @@ async def test_your_function():
     print("=" * 50)
     
     # Вызываем вашу функцию
-    result = await set_tp_order(api_key, secret_key, passphrase, "ETH-USDT-SWAP", "long", 2600, "0.1")
+    result = await set_tp_orders(api_key, secret_key, passphrase, "ETH-USDT-SWAP", "long", 0.1, [2100, 2200, 2300], )
     if result:
         print("✅ Функция вернула данные:")
         print(result)

@@ -20,7 +20,7 @@ async def test_your_function():
     print("=" * 50)
     
     # Вызываем вашу функцию
-    result = await set_sl_order(api_key, secret_key, passphrase, "ETH-USDT-SWAP", "long", 2000, "0.1")
+    result = await set_sl_order(api_key, secret_key, passphrase, "ETH-USDT-SWAP", "long", 1800, "0.1")
     if result:
         print("✅ Функция вернула данные:")
         print(result)
