@@ -15,7 +15,7 @@ async def get_open_positions(
         )
         result = client.get_positions()
         if result["code"] == "0":
-            return result
+            return result["data"]
         else:
             print(f"Ошибка при получении баланса: {result['msg']}")
             return None
