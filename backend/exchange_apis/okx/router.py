@@ -7,8 +7,9 @@ from backend.exchange_apis.okx.services.open_position import open_position
 from backend.exchange_apis.okx.services.get_symbol_info import get_symbol_info
 from backend.exchange_apis.okx.services.set_sl_order import set_sl_order
 from backend.exchange_apis.okx.services.set_tp_order import set_tp_orders
-
+import datetime
 import math
+
 async def open_position_for_users_okx(
         symbol : str,
         side : str,
@@ -76,7 +77,7 @@ async def open_position_for_users_okx(
                 quantity=str(quantity),
             )
             print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
-            
+            print(f"order response: {order}")
             sl_order = await set_sl_order(
                 api_key=user.api_key,
                 secret_key=user.secret_key,
@@ -87,7 +88,7 @@ async def open_position_for_users_okx(
                 quantity=str(quantity),
             )
             print(f"Выставление стоп-лосса для пользователя id={user.user_id}")
-
+            print(f"sl_order response: {sl_order}")
             tp_orders = await set_tp_orders(
                 api_key=user.api_key,
                 secret_key=user.secret_key,
@@ -98,6 +99,36 @@ async def open_position_for_users_okx(
                 tp_prices=[take_profit_1, take_profit_2, take_profit_3],
             )
             print(f"Выставление тейк-профитов для пользователя id={user.user_id}")
+
+            order_id = order["data"][0]["ordId"]
+            sl_order_id = sl_order["data"][0]["algoId"]
+
+            tp1_order_id = tp_orders[0]["data"][0]["algoId"] if len(tp_orders) > 0 else None
+            tp2_order_id = tp_orders[1]["data"][0]["algoId"] if len(tp_orders) > 1 else None
+            tp3_order_id = tp_orders[2]["data"][0]["algoId"] if len(tp_orders) > 2 else None
+
+            await TradesDAO.add(
+                user_id=user.user_id,
+                order_id=order_id,
+                symbol=symbol,
+                side=side,
+                position_side=side,
+                quantity=quantity,
+                entry_price=symbol_info["last_price"],
+                status="open",
+                created_at=datetime.datetime.now(),
+                exchange=user.exchange,
+                stop_loss=stop_loss,
+                sl_order_id=sl_order_id,
+                take_profit_1=take_profit_1,
+                take_profit_2=take_profit_2,
+                take_profit_3=take_profit_3,
+                tp1_order_id=tp1_order_id,
+                tp2_order_id=tp2_order_id,
+                tp3_order_id=tp3_order_id,
+            )
+            print("Запись по открытой сделке добавлена в БД")
+
 
         except Exception as e:
             print(f"Исключение при открытии сделки: {e}")
