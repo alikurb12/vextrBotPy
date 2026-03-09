@@ -7,8 +7,8 @@ app = FastAPI()
 
 @app.post("/webhook")
 async def webhook(data: SignalSchema):
-    
     if data.action == "BUY" or data.action == "SELL":
+        
         await open_position_for_users_bingx(
             symbol=data.symbol,
             side=data.action,
@@ -17,6 +17,7 @@ async def webhook(data: SignalSchema):
             take_profit_2=data.take_profit_2,
             take_profit_3=data.take_profit_3,
         )
+        
         await open_position_for_users_okx(
             symbol=data.symbol,
             side=data.action,
@@ -25,6 +26,7 @@ async def webhook(data: SignalSchema):
             take_profit_2=data.take_profit_2,
             take_profit_3=data.take_profit_3,
         )
+        
         await notify_users_position_opened(
             symbol=data.symbol,
             side=data.action,

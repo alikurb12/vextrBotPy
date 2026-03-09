@@ -129,6 +129,5 @@ async def open_position_for_users_okx(
             )
             print("Запись по открытой сделке добавлена в БД")
 
-
         except Exception as e:
             print(f"Исключение при открытии сделки: {e}")
