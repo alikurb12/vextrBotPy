@@ -24,7 +24,7 @@ async def get_users_balances():
         except Exception as e:
             print(f"Ошибка: {e}")
 
-async def open_position_for_all_users(
+async def open_position_for_users_bingx(
         symbol : str,
         side : str,
         stop_loss : float,
@@ -34,7 +34,7 @@ async def open_position_for_all_users(
 ):
     users = await UsersDAO.get_all(exchange="bingx")
     if not users:
-        print("Нет активных пользователей")
+        print("Нет активных пользователей c подпиской bingx")
     
     for i, user in enumerate(users, 1):
         if not user.api_key or not user.secret_key:

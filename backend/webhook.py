@@ -1,15 +1,23 @@
 from fastapi import FastAPI
-from backend.exchange_apis.bingx.router import open_position_for_all_users, move_sl_to_breakeven_for_all_users
+from backend.exchange_apis.bingx.router import open_position_for_users_bingx, move_sl_to_breakeven_for_all_users
 from backend.utils.signal_shema import SignalSchema
 from backend.utils.send_notification import notify_users_position_opened, notify_users_sl_moved_to_breakeven
-
+from backend.exchange_apis.okx.router import open_position_for_users_okx
 app = FastAPI()
 
 @app.post("/webhook")
 async def webhook(data: SignalSchema):
     
     if data.action == "BUY" or data.action == "SELL":
-        await open_position_for_all_users(
+        await open_position_for_users_bingx(
+            symbol=data.symbol,
+            side=data.action,
+            stop_loss=data.stop_loss,
+            take_profit_1=data.take_profit_1,
+            take_profit_2=data.take_profit_2,
+            take_profit_3=data.take_profit_3,
+        )
+        await open_position_for_users_okx(
             symbol=data.symbol,
             side=data.action,
             stop_loss=data.stop_loss,

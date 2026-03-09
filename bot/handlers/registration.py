@@ -104,6 +104,8 @@ async def process_secret_key(message: Message, state: FSMContext):
         if user_data['subscription_type'] == 'refferal':
             user_kwargs = {
                 'user_id': message.from_user.id,
+                'chat_id': message.chat.id,
+                'username': message.from_user.username,
                 'exchange': user_data['selected_exchange'],
                 'api_key': user_data['api_key'],
                 'secret_key': user_data['secret_key'],
@@ -115,6 +117,8 @@ async def process_secret_key(message: Message, state: FSMContext):
         else:
             user_kwargs = {
                 'user_id': message.from_user.id,
+                'chat_id': message.chat.id,
+                'username': message.from_user.username,
                 'exchange': user_data['selected_exchange'],
                 'api_key': user_data['api_key'],
                 'secret_key': user_data['secret_key'],
@@ -148,22 +152,28 @@ async def process_passphrase(message: Message, state: FSMContext):
     if user_data['subscription_type'] == 'refferal':
         user_kwargs = {
             'user_id': message.from_user.id,
+            'chat_id': message.chat.id,
+            'username': message.from_user.username,
             'exchange': user_data['selected_exchange'],
             'api_key': user_data['api_key'],
             'secret_key': user_data['secret_key'],
             'subscription_end': datetime.now() + timedelta(days=365),
             'subscription_type': 'refferal',
             'refferal_uuid': user_data['refferal_uuid'],
+            'passphrase': user_data['passphrase'],
         }
         await UsersDAO.add_or_update(**user_kwargs)
     else:
         user_kwargs = {
             'user_id': message.from_user.id,
+            'chat_id': message.chat.id,
+            'username': message.from_user.username,
             'exchange': user_data['selected_exchange'],
             'api_key': user_data['api_key'],
             'secret_key': user_data['secret_key'],
             'subscription_end': datetime.now() + timedelta(days=user_data['tariff_days']),
             'subscription_type': 'standard',
+            'passphrase': user_data['passphrase'],
         }
         await UsersDAO.add_or_update(**user_kwargs)
         await PaymentsDAO.add(

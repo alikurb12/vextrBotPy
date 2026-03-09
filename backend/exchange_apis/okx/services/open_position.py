@@ -28,7 +28,7 @@ async def open_position(
         if result["code"] == "0":
             return result
         else:
-            print(f"Ошибка при открытии позиции: {result['msg']}")
+            print(f"Ошибка при открытии позиции: {result}")
             return None
     except Exception as e:
         print(f"Исключение при открытии позиции: {e}")
