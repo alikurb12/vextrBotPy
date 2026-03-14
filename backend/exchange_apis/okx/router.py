@@ -18,7 +18,7 @@ async def open_position_for_users_okx(
         take_profit_2 : float,
         take_profit_3 : float,
 ):
-    
+    symbol = symbol[:-6] + "-USD-SWAP"
     side = "long" if side == "BUY" else "short"
     users = await UsersDAO.get_all(exchange="OKX")
     if not users:

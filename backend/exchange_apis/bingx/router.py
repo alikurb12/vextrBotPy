@@ -32,6 +32,7 @@ async def open_position_for_users_bingx(
         take_profit_2 : float,
         take_profit_3 : float,
 ):
+    symbol = symbol.replace(".P", "").replace("USDT", "-USDT")
     users = await UsersDAO.get_all(exchange="bingx")
     if not users:
         print("Нет активных пользователей c подпиской bingx")
