@@ -42,3 +42,9 @@ async def webhook(data: SignalSchema):
         await move_sl_to_breakeven_for_all_users(symbol=data.symbol)
     
     return {"message": "Webhook received successfully"}
+
+@app.get("/health")
+async def health():
+    return {
+        "result" : "OK"
+    }
