@@ -116,27 +116,38 @@ async def open_position_for_users_okx(
             tp2_order_id = tp_orders[1]["data"][0]["algoId"] if len(tp_orders) > 1 else None
             tp3_order_id = tp_orders[2]["data"][0]["algoId"] if len(tp_orders) > 2 else None
 
-            await TradesDAO.add(
-                user_id=user.user_id,
-                order_id=order_id,
-                symbol=symbol,
-                side=side,
-                position_side=side,
-                quantity=quantity,
-                entry_price=symbol_info["last_price"],
-                status="open",
-                created_at=datetime.datetime.now(),
-                exchange=user.exchange,
-                stop_loss=stop_loss,
-                sl_order_id=sl_order_id,
-                take_profit_1=take_profit_1,
-                take_profit_2=take_profit_2,
-                take_profit_3=take_profit_3,
-                tp1_order_id=tp1_order_id,
-                tp2_order_id=tp2_order_id,
-                tp3_order_id=tp3_order_id,
-            )
-            print("Запись по открытой сделке добавлена в БД")
+            order_id = order["data"][0]["ordId"]
+
+            # Безопасное получение ID ордеров
+            sl_order_id = sl_order["data"][0]["algoId"] if sl_order and sl_order.get("code") == "0" else None
+            tp1_order_id = tp_orders[0]["data"][0]["algoId"] if len(tp_orders) > 0 and tp_orders[0].get("code") == "0" else None
+            tp2_order_id = tp_orders[1]["data"][0]["algoId"] if len(tp_orders) > 1 and tp_orders[1].get("code") == "0" else None
+            tp3_order_id = tp_orders[2]["data"][0]["algoId"] if len(tp_orders) > 2 and tp_orders[2].get("code") == "0" else None
+
+            try:
+                await TradesDAO.add(
+                    user_id=user.user_id,
+                    order_id=order_id,
+                    symbol=symbol,
+                    side=side,
+                    position_side=side,
+                    quantity=quantity,
+                    entry_price=symbol_info["last_price"],
+                    status="open",
+                    created_at=datetime.datetime.now(),
+                    exchange=user.exchange,
+                    stop_loss=stop_loss,
+                    sl_order_id=sl_order_id,
+                    take_profit_1=take_profit_1,
+                    take_profit_2=take_profit_2,
+                    take_profit_3=take_profit_3,
+                    tp1_order_id=tp1_order_id,
+                    tp2_order_id=tp2_order_id,
+                    tp3_order_id=tp3_order_id,
+                )
+                print("Запись по открытой сделке добавлена в БД")
+            except Exception as db_error:
+                print(f"Ошибка сохранения в БД для OKX: {db_error}")
 
         except Exception as e:
             print(f"Исключение при открытии сделки: {e}")

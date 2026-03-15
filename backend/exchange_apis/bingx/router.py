@@ -107,30 +107,36 @@ async def open_position_for_users_bingx(
             )
             print(f"Выставление тейк-профитов для пользователя id={user.user_id}")
 
-            await TradesDAO.add(
-                user_id = user.user_id,
-                order_id = str(order.get("order").get("orderId")),
-                symbol = order.get("order").get("symbol"),
-                side = side,
-                position_side = order.get("order").get("positionSide"),
-                quantity = float(order.get("order").get("quantity")),
-                entry_price = float(order.get("order").get("avgPrice")),
-                status = "open",
-                created_at = datetime.datetime.now(),
-                exchange = user.exchange,
-                stop_loss = stop_loss,
-                sl_order_id = str(sl_order.get("order").get("orderId")),
-                take_profit_1 = take_profit_1,
-                take_profit_2 = take_profit_2,
-                take_profit_3 = take_profit_3,
-                tp1_order_id = str(tp_orders[0].get("order").get("orderId"))
-                if len(tp_orders) > 0 else None,
-                tp2_order_id = str(tp_orders[1].get("order").get("orderId"))
-                if len(tp_orders) > 1 else None,
-                tp3_order_id = str(tp_orders[2].get("order").get("orderId"))
-                if len(tp_orders) > 2 else None,
-            )
-            print("Запись по открытой сделке добавлено в БД")
+            # Безопасное получение ID ордеров
+            sl_order_id = str(sl_order.get("order").get("orderId")) if sl_order and sl_order.get("order") else None
+            tp1_order_id = str(tp_orders[0].get("order").get("orderId")) if len(tp_orders) > 0 and tp_orders[0].get("order") else None
+            tp2_order_id = str(tp_orders[1].get("order").get("orderId")) if len(tp_orders) > 1 and tp_orders[1].get("order") else None
+            tp3_order_id = str(tp_orders[2].get("order").get("orderId")) if len(tp_orders) > 2 and tp_orders[2].get("order") else None
+
+            try:
+                await TradesDAO.add(
+                    user_id=user.user_id,
+                    order_id=str(order.get("order").get("orderId")),
+                    symbol=order.get("order").get("symbol"),
+                    side=side,
+                    position_side=order.get("order").get("positionSide"),
+                    quantity=float(order.get("order").get("quantity")),
+                    entry_price=float(order.get("order").get("avgPrice")),
+                    status="open",
+                    created_at=datetime.datetime.now(),
+                    exchange=user.exchange,
+                    stop_loss=stop_loss,
+                    sl_order_id=sl_order_id,
+                    take_profit_1=take_profit_1,
+                    take_profit_2=take_profit_2,
+                    take_profit_3=take_profit_3,
+                    tp1_order_id=tp1_order_id,
+                    tp2_order_id=tp2_order_id,
+                    tp3_order_id=tp3_order_id,
+                )
+                print("Запись по открытой сделке добавлена в БД")
+            except Exception as db_error:
+                print(f"Ошибка сохранения в БД: {db_error}")
         except Exception as e:
             print(f"Ошибка при открытии сделки: {e}")
 
