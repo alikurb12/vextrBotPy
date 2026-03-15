@@ -8,6 +8,9 @@ from backend.exchange_apis.bingx.services.set_tp_orders import set_tp_orders
 from backend.exchange_apis.bingx.services.move_sl_to_breakeven import move_sl_to_breakeven
 from backend.exchange_apis.bingx.services.close_position import close_position
 import datetime
+import logging
+
+log = logging.getLogger(__name__)
 
 async def get_users_balances():
     users = await UsersDAO.get_all(exchange="bingx")
@@ -76,12 +79,12 @@ async def open_position_for_users_bingx(
                 side=side,
                 quantity=user_balance * 0.05 * 10,
             )
-            print(f"order response: {order}")
+            log.info(f"order response: {order}")
             if not order or not order.get("order"):
-                print(f"Ордер не открылся для пользователя id='{user.user_id}', пропускаем")
+                log.error(f"Ордер не открылся для пользователя id='{user.user_id}', пропускаем")
                 continue
 
-            print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
+            log.info(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
 
             sl_order = await set_sl_order(
                 api_key = user.api_key,

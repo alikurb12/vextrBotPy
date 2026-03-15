@@ -9,6 +9,9 @@ from backend.exchange_apis.okx.services.set_sl_order import set_sl_order
 from backend.exchange_apis.okx.services.set_tp_order import set_tp_orders
 import datetime
 import math
+import logging
+
+log = logging.getLogger(__name__)
 
 async def open_position_for_users_okx(
         symbol : str,
@@ -78,11 +81,11 @@ async def open_position_for_users_okx(
                 position_side=side,
                 quantity=str(quantity),
             )
-            print(f"order response: {order}")
+            log.info(f"order response: {order}")
             if not order or order.get("code") != "0":
-                print(f"Ошибка открытия позиции для пользователя id='{user.user_id}': {order}")
+                log.error(f"Ошибка открытия позиции для пользователя id='{user.user_id}': {order}")
                 continue
-            print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
+            log.info(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
 
             sl_order = await set_sl_order(
                 api_key=user.api_key,
