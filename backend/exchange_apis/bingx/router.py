@@ -71,13 +71,17 @@ async def open_position_for_users_bingx(
             
             order = await create_main_order(
                 symbol=symbol,
-                api_key = user.api_key,
-                secret_key = user.secret_key,
+                api_key=user.api_key,
+                secret_key=user.secret_key,
                 side=side,
-                quantity=user_balance*0.05 * 10, 
+                quantity=user_balance * 0.05 * 10,
             )
+            print(f"order response: {order}")
+            if not order or not order.get("order"):
+                print(f"Ордер не открылся для пользователя id='{user.user_id}', пропускаем")
+                continue
+
             print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
-            
 
             sl_order = await set_sl_order(
                 api_key = user.api_key,

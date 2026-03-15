@@ -18,7 +18,8 @@ async def open_position_for_users_okx(
         take_profit_2 : float,
         take_profit_3 : float,
 ):
-    symbol = symbol[:-6] + "-USD-SWAP"
+    symbol = symbol.replace(".P", "").replace("USDT", "-USDT") + "-SWAP"
+    print(f"Преобразованный символ для OKX: {symbol}")
     side = "long" if side == "BUY" else "short"
     users = await UsersDAO.get_all(exchange="OKX")
     if not users:
@@ -77,8 +78,12 @@ async def open_position_for_users_okx(
                 position_side=side,
                 quantity=str(quantity),
             )
-            print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
             print(f"order response: {order}")
+            if not order or order.get("code") != "0":
+                print(f"Ошибка открытия позиции для пользователя id='{user.user_id}': {order}")
+                continue
+            print(f"Открыта сделка '{symbol}' для пользователя id='{user.user_id}'.")
+
             sl_order = await set_sl_order(
                 api_key=user.api_key,
                 secret_key=user.secret_key,
