@@ -23,6 +23,7 @@ async def open_position_for_users_okx(
     users = await UsersDAO.get_all(exchange="OKX")
     if not users:
         print("Нет активных пользователей с подпиской okx")
+        return
     
     for i, user in enumerate(users, 1):
         if not user.api_key or not user.secret_key:

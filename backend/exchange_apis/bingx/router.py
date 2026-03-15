@@ -36,6 +36,7 @@ async def open_position_for_users_bingx(
     users = await UsersDAO.get_all(exchange="bingx")
     if not users:
         print("Нет активных пользователей c подпиской bingx")
+        return
     
     for i, user in enumerate(users, 1):
         if not user.api_key or not user.secret_key:

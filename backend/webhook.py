@@ -1,12 +1,19 @@
+import logging
 from fastapi import FastAPI
 from backend.exchange_apis.bingx.router import open_position_for_users_bingx, move_sl_to_breakeven_for_all_users
 from backend.utils.signal_shema import SignalSchema
 from backend.utils.send_notification import notify_users_position_opened, notify_users_sl_moved_to_breakeven
 from backend.exchange_apis.okx.router import open_position_for_users_okx
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
 
 @app.post("/webhook")
 async def webhook(data: SignalSchema):
+    logger.info(f"📩 Входящий сигнал: action={data.action}, symbol={data.symbol}, price={data.price}, sl={data.stop_loss}, tp1={data.take_profit_1}, tp2={data.take_profit_2}, tp3={data.take_profit_3}")
+
     if data.action == "BUY" or data.action == "SELL":
         
         await open_position_for_users_bingx(
@@ -38,6 +45,7 @@ async def webhook(data: SignalSchema):
         )
     
     elif data.action == "MOVE_SL":
+        logger.info(f"🔄 MOVE_SL для символа: {data.symbol}")
         await notify_users_sl_moved_to_breakeven(symbol=data.symbol)
         await move_sl_to_breakeven_for_all_users(symbol=data.symbol)
     
@@ -45,6 +53,4 @@ async def webhook(data: SignalSchema):
 
 @app.get("/health")
 async def health():
-    return {
-        "result" : "OK"
-    }
+    return {"result": "OK"}
