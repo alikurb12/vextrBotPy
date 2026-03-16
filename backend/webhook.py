@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from backend.exchange_apis.bingx.router import open_position_for_users_bingx, move_sl_to_breakeven_for_all_users
 from backend.utils.signal_shema import SignalSchema
 from backend.utils.send_notification import notify_users_position_opened, notify_users_sl_moved_to_breakeven
@@ -11,9 +11,14 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 @app.post("/webhook")
-async def webhook(data: SignalSchema):
+async def webhook(request: Request, data: SignalSchema):
     logger.info(f"📩 Входящий сигнал: action={data.action}, symbol={data.symbol}, price={data.price}, sl={data.stop_loss}, tp1={data.take_profit_1}, tp2={data.take_profit_2}, tp3={data.take_profit_3}")
-
+    raw = await request.body()
+    logger.info(f"📩 Raw webhook body: {raw.decode()}")
+    
+    if data is None:
+        logger.error("❌ Не удалось распарсить SignalSchema!")
+        return {"error": "invalid data"}
     if data.action == "BUY" or data.action == "SELL":
         
         await open_position_for_users_bingx(
