@@ -22,7 +22,6 @@ async def open_position_for_users_okx(
         take_profit_3 : float,
 ):
     symbol = symbol.replace(".P", "").replace("USDT", "-USDT") + "-SWAP"
-    print(f"Преобразованный символ для OKX: {symbol}")
     side = "long" if side == "BUY" else "short"
     users = await UsersDAO.get_all(exchange="OKX")
     if not users:
