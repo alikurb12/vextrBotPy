@@ -31,6 +31,11 @@ class Settings(BaseSettings):
 
     LEVERAGE_LEVEL : int
 
+    ADMIN_USERNAME : str
+    ADMIN_PASSWORD : str
+
+    SECRET_KEY_ADMIN : str
+
     @model_validator(mode="after")
     def get_database_url(self):
         if not self.DATABASE_URL:

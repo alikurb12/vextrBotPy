@@ -8,12 +8,36 @@ from backend.exchange_apis.okx.router import open_position_for_users_okx
 from sqladmin import Admin
 from database.database import engine
 from backend.admin.config import configure_admin_routes
+from backend.admin.auth import AdminAuth
+from config.config import settings
+from starlette.middleware.sessions import SessionMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-admin = Admin(app, engine)
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY_ADMIN)
+
+authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY_ADMIN)
+admin = Admin(
+    app=app,
+    engine=engine,
+    authentication_backend=authentication_backend,
+    title="Админка Vextr Bot",
+    base_url="/admin",
+)
+
+@app.get("/")
+async def root():
+    return {
+        "message": "Vextr Bot API",
+        "endpoints": {
+            "/webhook": "POST - Receive trading signals",
+            "/health": "GET - Health check",
+            "/admin": "Admin panel",
+            "/docs": "Swagger documentation"
+        }
+    }
 
 @app.post("/webhook")
 async def webhook(request: Request):
