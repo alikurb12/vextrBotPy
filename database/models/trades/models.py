@@ -25,4 +25,7 @@ class Trades(Base):
     created_at = Column(DateTime)
     exchange = Column(String)
 
-    user = relationship("Users", backref="trades")
+    user = relationship("Users", back_populates="trades")
+
+    def __str__(self):
+        return self.symbol
