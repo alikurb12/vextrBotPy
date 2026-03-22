@@ -5,7 +5,6 @@ from celery_app import celery_app
 logger = logging.getLogger(__name__)
 
 def patch_database():
-    """Пересоздаём engine и session для нового event loop"""
     from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
     from sqlalchemy.orm import sessionmaker
     import database.database as db_module
@@ -23,7 +22,6 @@ def process_signal(self, action: str, symbol: str, price: float,
                    take_profit_2: float, take_profit_3: float):
     try:
         logger.info(f"⚙️ Обработка сигнала: {action} {symbol}")
-        # Пересоздаём engine перед каждой задачей
         patch_database()
         asyncio.run(_process_signal_async(
             action=action, symbol=symbol, price=price,
