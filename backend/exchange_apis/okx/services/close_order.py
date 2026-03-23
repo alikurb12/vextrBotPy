@@ -1,31 +1,31 @@
 import okx.Trade as Trade
 from config.config import settings
 
-async def close_position(
+async def close_order(
         api_key : str,
         secret_key : str,
         passphrase : str,
         symbol : str,
-        position_syde : str,
+        order_id : str,
 ):
     try:
         trade = Trade.TradeAPI(
             api_key=api_key,
             api_secret_key=secret_key,
             passphrase=passphrase,
-            flag=settings.OKX_FLAG,
+            flag=settings
         )
-        result = trade.close_positions(
+
+        result = trade.cancel_order(
             instId=symbol,
-            posSide=position_syde,
-            mgnMode="isolated",
+            ordId=order_id,
         )
-        if result["code"] == "0":
+
+        if result["code"] == 0:
             return result
         else:
-            print(f"Ошибка при закрытии сделки: {result['msg']}")
+            print(f"Ошибка при закрытии ордера: {result}")
             return None
     except Exception as e:
-        print(f"Исключение при закрытии сделки: {e}")
+        print(f"Исключение при закрытии ордера: {e}")
         return None
-    
