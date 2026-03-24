@@ -55,7 +55,7 @@ async def main():
 asyncio.run(main())
 """
     result = subprocess.run(
-        ['/root/vextr/venv/bin/python3', '-c', script],
+        [sys.executable, '-c', script],
         capture_output=True, text=True,
         env={
             'PYTHONPATH': '/root/vextr',

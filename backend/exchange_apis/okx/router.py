@@ -7,6 +7,7 @@ from backend.exchange_apis.okx.services.open_position import open_position
 from backend.exchange_apis.okx.services.get_symbol_info import get_symbol_info
 from backend.exchange_apis.okx.services.set_sl_order import set_sl_order
 from backend.exchange_apis.okx.services.set_tp_order import set_tp_orders
+from backend.exchange_apis.okx.services.move_sl_to_breakeven import move_sl_to_breakeven
 import datetime
 import math
 import logging
@@ -150,3 +151,41 @@ async def open_position_for_users_okx(
 
         except Exception as e:
             print(f"Исключение при открытии сделки: {e}")
+
+async def move_sl_to_breakeven_okx(
+        symbol : str
+):
+    symbol = symbol.replace(".P", "").replace("USDT", "-USDT") + "-SWAP" 
+    users = await UsersDAO.get_all(exchange="OKX")
+    if not users:
+        print("Нет активных пользователей с подпиской okx")
+    
+    for i, user in enumerate(users, 1):
+        if not user.api_key or not user.secret_key:
+            print(f"У пользователя id = {user.user_id}'; username = '{user.usename}' нет АПИ и/или Секрет ключей")
+            continue
+        try:
+            trades = await TradesDAO.get_all(user_id=user.user_id, symbol=symbol, status="open")
+            if not trades:
+                print(f"У пользователя id='{user.user_id}' нет открытых сделок по '{symbol}'")
+                continue
+            
+            for trade in trades:
+                await move_sl_to_breakeven(
+                    api_key = user.api_key,
+                    secret_key = user.secret_key,
+                    symbol = trade.symbol,
+                    side = trade.side,
+                    quantity = trade.quantity,
+                    entry_price = trade.entry_price,
+                    sl_order_id = trade.sl_order_id
+                )
+                print(f"SL успешно перемещён в безубыток для сделки id='{trade.trade_id}' пользователя id='{user.user_id}'")
+                await TradesDAO.update(
+                    trade_id = trade.trade_id,
+                    stop_loss = trade.entry_price,
+                    sl_order_id = None,
+                    status = "sl_moved_to_breakeven",
+                )
+        except Exception as e:
+            print(f"Ошибка при перемещении SL в безубыток для пользователя id='{user.user_id}': {e}")
