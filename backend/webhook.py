@@ -9,6 +9,8 @@ from sqladmin import Admin
 from database.database import engine
 from backend.admin.config import configure_admin_routes
 from config.config import settings
+import redis as redis_client
+import json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -59,16 +61,18 @@ async def webhook(request: Request):
         return JSONResponse(status_code=422, content={"error": str(e)})
 
     logger.info(f"✅ Получен сигнал: action={data.action}, symbol={data.symbol}")
-
-    process_signal.delay(
-        action=data.action,
-        symbol=data.symbol,
-        price=data.price,
-        stop_loss=data.stop_loss,
-        take_profit_1=data.take_profit_1,
-        take_profit_2=data.take_profit_2,
-        take_profit_3=data.take_profit_3,
-    )
+    r = redis_client.Redis(host='localhost', port=6379, db=0)
+    signal_data = {
+        "action": data.action,
+        "symbol": data.symbol,
+        "price": data.price,
+        "stop_loss": data.stop_loss,
+        "take_profit_1": data.take_profit_1,
+        "take_profit_2": data.take_profit_2,
+        "take_profit_3": data.take_profit_3,
+    }
+    r.rpush("signal_queue", json.dumps(signal_data))
+    logger.info(f"📬 Сигнал в очереди: {data.action} {data.symbol}")
 
     logger.info(f"📬 Сигнал добавлен в очередь: {data.action} {data.symbol}")
     return {"message": "Signal queued successfully"}
