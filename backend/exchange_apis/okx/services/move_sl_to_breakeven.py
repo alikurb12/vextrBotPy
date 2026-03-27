@@ -11,19 +11,9 @@ async def move_sl_to_breakeven(
         position_side : str,
         quantity : str,
         entry_price : str,
-        sl_order_id : str,
 
 ):
     try:
-        await close_order(
-            api_key=api_key,
-            secret_key=secret_key,
-            passphrase=passphrase,
-            symbol=symbol,
-            order_id=sl_order_id,
-        )
-        print(f"SL ордер {sl_order_id} успешно отменён")
-
         result = await set_sl_order(
             api_key=api_key,
             secret_key=secret_key,

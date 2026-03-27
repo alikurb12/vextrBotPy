@@ -179,7 +179,6 @@ async def move_sl_to_breakeven_okx(
                     position_side = trade.side,
                     quantity = trade.quantity,
                     entry_price = trade.entry_price,
-                    sl_order_id = trade.sl_order_id
                 )
                 print(f"SL успешно перемещён в безубыток для сделки id='{trade.trade_id}' пользователя id='{user.user_id}'")
                 await TradesDAO.update(
