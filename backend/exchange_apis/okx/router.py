@@ -174,6 +174,7 @@ async def move_sl_to_breakeven_okx(
                 await move_sl_to_breakeven(
                     api_key = user.api_key,
                     secret_key = user.secret_key,
+                    passphrase = user.passphrase,
                     symbol = trade.symbol,
                     position_side = trade.side,
                     quantity = trade.quantity,
