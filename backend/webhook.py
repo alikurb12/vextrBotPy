@@ -114,7 +114,7 @@ async def health():
 async def get_task_status(task_id: str):
     """Получение статуса задачи по ID"""
     from celery.result import AsyncResult
-    from backend.celery_app import celery_app
+    from celery_app import celery_app
     
     try:
         task = AsyncResult(task_id, app=celery_app)
