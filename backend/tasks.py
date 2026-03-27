@@ -6,7 +6,7 @@ from celery.exceptions import Retry
 from database.models.users.dao import UsersDAO
 from database.models.trades.dao import TradesDAO
 
-from .celery_app import celery_app
+from celery_app import celery_app
 from backend.exchange_apis.bingx.router import open_position_for_users_bingx
 from backend.exchange_apis.okx.router import open_position_for_users_okx
 from backend.exchange_apis.bingx.router import move_sl_to_breakeven_for_all_users as move_sl_bingx
