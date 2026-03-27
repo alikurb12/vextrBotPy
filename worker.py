@@ -37,7 +37,8 @@ async def main():
     from backend.exchange_apis.bingx.router import open_position_for_users_bingx
     from backend.exchange_apis.okx.router import open_position_for_users_okx
     from backend.utils.send_notification import notify_users_position_opened
-    from backend.exchange_apis.bingx.router import move_sl_to_breakeven_for_all_users
+    from backend.exchange_apis.bingx.router import move_sl_to_breakeven_for_all_users as move_sl_bingx
+    from backend.exchange_apis.okx.router import move_sl_to_breakeven_okx as move_sl_okx
     from backend.utils.send_notification import notify_users_sl_moved_to_breakeven
 
     action = {repr(signal_data['action'])}
@@ -66,7 +67,8 @@ async def main():
         )
     elif action == 'MOVE_SL':
         await notify_users_sl_moved_to_breakeven(symbol=symbol)
-        await move_sl_to_breakeven_for_all_users(symbol=symbol)
+        await move_sl_bingx(symbol=symbol)
+        await move_sl_okx(symbol=symbol)
 
 # Запускаем основную функцию
 asyncio.run(main())
