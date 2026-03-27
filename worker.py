@@ -12,6 +12,18 @@ r = redis.Redis(host='localhost', port=6379, db=0)
 QUEUE_NAME = 'signal_queue'
 
 def process_in_subprocess(signal_data: dict):
+    import math
+    
+    def safe_val(v):
+        if v is None:
+            return 'None'
+        try:
+            if math.isnan(float(v)):
+                return 'None'
+        except (TypeError, ValueError):
+            pass
+        return repr(v)
+
     script = f"""
 import asyncio
 import sys
@@ -26,11 +38,11 @@ async def main():
 
     action = {repr(signal_data['action'])}
     symbol = {repr(signal_data['symbol'])}
-    price = {signal_data['price']}
-    stop_loss = {signal_data['stop_loss']}
-    take_profit_1 = {signal_data['take_profit_1']}
-    take_profit_2 = {signal_data['take_profit_2']}
-    take_profit_3 = {signal_data['take_profit_3']}
+    price = {safe_val(signal_data['price'])}
+    stop_loss = {safe_val(signal_data['stop_loss'])}
+    take_profit_1 = {safe_val(signal_data['take_profit_1'])}
+    take_profit_2 = {safe_val(signal_data['take_profit_2'])}
+    take_profit_3 = {safe_val(signal_data['take_profit_3'])}
 
     if action in ('BUY', 'SELL'):
         await open_position_for_users_bingx(

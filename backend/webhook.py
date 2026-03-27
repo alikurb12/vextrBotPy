@@ -50,6 +50,7 @@ async def root():
         "required": True,
     }
 })
+
 async def webhook(request: Request):
     raw = await request.body()
     logger.info(f"📩 Raw webhook: {raw.decode()}")
