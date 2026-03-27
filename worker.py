@@ -5,11 +5,16 @@ import json
 import subprocess
 import sys
 import warnings
+import os
 
 # Подавляем предупреждения на уровне всего приложения
 warnings.filterwarnings("ignore")
+os.environ["PYTHONWARNINGS"] = "ignore"
+os.environ["PYTHONASYNCIODEBUG"] = "0"
+
 logging.getLogger("aiohttp").setLevel(logging.CRITICAL)
 logging.getLogger("urllib3").setLevel(logging.CRITICAL)
+logging.getLogger("asyncio").setLevel(logging.CRITICAL)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,6 +35,7 @@ def process_in_subprocess(signal_data: dict):
             pass
         return repr(v)
 
+    # Создаем скрипт, который полностью подавляет весь вывод ошибок
     script = f"""
 import asyncio
 import sys
@@ -37,17 +43,20 @@ import warnings
 import gc
 import os
 
-# Полностью отключаем вывод предупреждений
+# Полностью отключаем все предупреждения и вывод
 warnings.filterwarnings("ignore")
 os.environ["PYTHONWARNINGS"] = "ignore"
+os.environ["PYTHONASYNCIODEBUG"] = "0"
 
-# Перенаправляем stderr для подавления ошибок
-import contextlib
-import io
+# Отключаем стандартные потоки вывода ошибок
+sys.stderr = open(os.devnull, 'w')
 
-# Перехватываем stderr
-stderr_capture = io.StringIO()
+# Подавляем вывод aiohttp
+import logging
+logging.getLogger("aiohttp").setLevel(logging.CRITICAL)
+logging.getLogger("asyncio").setLevel(logging.CRITICAL)
 
+# Импортируем только после подавления вывода
 sys.path.insert(0, '/root/vextr')
 
 async def main():
@@ -89,22 +98,22 @@ async def main():
             await move_sl_okx(symbol=symbol)
             
     except Exception as e:
-        # Выводим только важные ошибки
-        if "No active users" not in str(e) and "нет открытых сделок" not in str(e):
-            print(f"ERROR: {{e}}", file=sys.stdout)
-    finally:
-        # Даем время на завершение всех операций
-        await asyncio.sleep(0.1)
-
-# Запускаем с перехватом stderr
-with contextlib.redirect_stderr(stderr_capture):
-    try:
-        asyncio.run(main())
-    except Exception:
-        pass
+        # Выводим только если это не стандартные сообщения
+        msg = str(e)
+        if "No active users" not in msg and "нет открытых сделок" not in msg:
+            # Используем stdout, так как stderr отключен
+            print(f"ERROR: {{msg}}")
     finally:
         # Принудительная очистка
         gc.collect()
+
+# Запускаем с подавлением вывода
+try:
+    asyncio.run(main())
+except Exception:
+    pass
+finally:
+    gc.collect()
 """
 
     result = subprocess.run(
@@ -113,46 +122,31 @@ with contextlib.redirect_stderr(stderr_capture):
         env={
             'PYTHONPATH': '/root/vextr',
             'PATH': '/root/vextr/venv/bin:/usr/bin:/bin',
-            'PYTHONWARNINGS': 'ignore',  # Отключаем предупреждения
+            'PYTHONWARNINGS': 'ignore',
+            'PYTHONASYNCIODEBUG': '0',
         },
-        timeout=60  # Таймаут 60 секунд
+        timeout=60
     )
     
+    # Выводим только stdout (информационные сообщения)
     if result.stdout:
-        important_lines = []
+        # Фильтруем только нужные строки
         for line in result.stdout.split('\n'):
             line = line.strip()
             if not line:
                 continue
-            if any(skip in line for skip in [
-                'Unclosed', 'client_session', 'Fatal error', 'OSError', 
-                'RuntimeError', 'SSL transport', 'Bad file descriptor',
-                'Event loop is closed', 'SSL', 'asyncio', 'Traceback'
-            ]):
-                continue
-            important_lines.append(line)
-        
-        if important_lines:
-            logger.info('\n'.join(important_lines))
-    
-    if result.stderr and 'No active users' not in result.stderr:
-        stderr_lines = []
-        for line in result.stderr.split('\n'):
-            line = line.strip()
-            if not line:
-                continue
+            # Пропускаем все технические сообщения
             if any(skip in line for skip in [
                 'Unclosed', 'client_session', 'Fatal error', 'OSError',
                 'RuntimeError', 'SSL transport', 'Bad file descriptor',
                 'Event loop is closed', 'SSL', 'asyncio', 'Traceback',
-                'socket', 'selector', 'transport'
+                'connections:', 'connector:', 'aiohttp.client_proto',
+                'ResponseHandler', 'TCPConnector', 'deque'
             ]):
                 continue
-            stderr_lines.append(line)
-        
-        if stderr_lines:
-            logger.error('\n'.join(stderr_lines))
+            logger.info(line)
     
+    # stderr игнорируем полностью
     return result.returncode == 0
 
 def main():
@@ -172,10 +166,11 @@ def main():
             
             if success:
                 logger.info(f"✅ Сигнал обработан: {signal['action']} {signal['symbol']}")
-                error_count = 0  # Сбрасываем счетчик ошибок
+                error_count = 0
             else:
-                logger.error(f"❌ Ошибка обработки: {signal['action']} {signal['symbol']}")
                 error_count += 1
+                if error_count <= 3:  # Выводим ошибку только если их немного
+                    logger.error(f"❌ Ошибка обработки: {signal['action']} {signal['symbol']}")
                 
                 if error_count > 5:
                     logger.warning("⚠️ Слишком много ошибок, пауза 10 секунд...")
@@ -184,8 +179,9 @@ def main():
                     error_count = 0
                     
         except Exception as e:
-            logger.error(f"❌ Ошибка воркера: {e}")
             error_count += 1
+            if error_count <= 3:
+                logger.error(f"❌ Ошибка воркера: {e}")
             if error_count > 5:
                 import time
                 time.sleep(10)
