@@ -4,6 +4,8 @@ import redis
 import json
 import subprocess
 import sys
+import aiohttp
+import gc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +29,8 @@ def process_in_subprocess(signal_data: dict):
     script = f"""
 import asyncio
 import sys
+import gc
+import aiohttp
 sys.path.insert(0, '/root/vextr')
 
 async def main():
@@ -64,8 +68,33 @@ async def main():
         await notify_users_sl_moved_to_breakeven(symbol=symbol)
         await move_sl_to_breakeven_for_all_users(symbol=symbol)
 
+# Запускаем основную функцию
 asyncio.run(main())
+
+# ПРИНУДИТЕЛЬНОЕ ЗАКРЫТИЕ ВСЕХ СЕССИЙ
+import aiohttp
+import asyncio
+
+# Получаем все текущие задачи
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+# Закрываем все сессии
+for obj in gc.get_objects():
+    if isinstance(obj, aiohttp.ClientSession):
+        if not obj.closed:
+            loop.run_until_complete(obj.close())
+    elif isinstance(obj, aiohttp.connector.TCPConnector):
+        if not obj.closed:
+            loop.run_until_complete(obj.close())
+
+# Закрываем цикл
+loop.close()
+
+# Принудительная сборка мусора
+gc.collect()
 """
+
     result = subprocess.run(
         [sys.executable, '-c', script],
         capture_output=True, text=True,
@@ -75,9 +104,17 @@ asyncio.run(main())
         }
     )
     if result.stdout:
-        logger.info(result.stdout)
+        # Фильтруем предупреждения о незакрытых сессиях
+        stdout_lines = [line for line in result.stdout.split('\n') 
+                       if 'Unclosed' not in line and 'client_session' not in line]
+        if stdout_lines:
+            logger.info('\n'.join(stdout_lines))
     if result.stderr:
-        logger.error(result.stderr)
+        # Фильтруем предупреждения о незакрытых сессиях
+        stderr_lines = [line for line in result.stderr.split('\n') 
+                       if 'Unclosed' not in line and 'client_session' not in line]
+        if stderr_lines:
+            logger.error('\n'.join(stderr_lines))
     return result.returncode == 0
 
 def main():
