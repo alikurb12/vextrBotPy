@@ -5,6 +5,7 @@ from celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
+
 @celery_app.task(name="process_signal", bind=True, max_retries=3)
 def process_signal(self, signal_data):
     try:
@@ -39,8 +40,16 @@ async def _process_async(action, symbol, price, stop_loss,
     import database.database as db_module
     from config.config import settings
 
-    engine = create_async_engine(settings.DATABASE_URL, pool_size=1, max_overflow=0)
+    # Создаём свежий engine и session_maker для этого event loop
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        pool_size=1,
+        max_overflow=0,
+        pool_reset_on_return="rollback",
+    )
     session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    # Заменяем глобальные переменные — BaseDao использует их через lazy import
     db_module.engine = engine
     db_module.async_session_maker = session_maker
 

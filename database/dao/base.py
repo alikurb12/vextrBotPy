@@ -1,33 +1,38 @@
-from database.database import async_session_maker
 from sqlalchemy import select, insert, delete
+
 
 class BaseDao:
     model = None
 
     @classmethod
+    def _get_session_maker(cls):
+        from database.database import async_session_maker
+        return async_session_maker
+
+    @classmethod
     async def get_all(cls, **kwargs):
-        async with async_session_maker() as session:
+        async with cls._get_session_maker()() as session:
             query = select(cls.model).filter_by(**kwargs)
             result = await session.execute(query)
             return result.scalars().all()
-    
+
     @classmethod
-    async def get_by_id(cls, model_id : int):
-        async with async_session_maker() as session:
+    async def get_by_id(cls, model_id: int):
+        async with cls._get_session_maker()() as session:
             query = select(cls.model).filter_by(id=model_id)
             result = await session.execute(query)
             return result.scalar_one_or_none()
 
     @classmethod
     async def add(cls, **kwargs):
-        async with async_session_maker() as session:
+        async with cls._get_session_maker()() as session:
             query = insert(cls.model).values(**kwargs)
             await session.execute(query)
             await session.commit()
-    
+
     @classmethod
-    async def delete(cls, model_id : int):
-        async with async_session_maker() as session:
-            query = delete(cls.model).filter_by(model_id = model_id)
+    async def delete(cls, model_id: int):
+        async with cls._get_session_maker()() as session:
+            query = delete(cls.model).filter_by(model_id=model_id)
             await session.execute(query)
             await session.commit()
