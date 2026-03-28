@@ -36,6 +36,12 @@ def process_signal(self, signal_data):
             take_profit_2=take_profit_2, take_profit_3=take_profit_3,
         ))
 
+        import database.database as db_module
+        if db_module.engine:
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(db_module.engine.dispose())
+            loop.close()
+
         logger.info(f"✅ Сигнал обработан: {action} {symbol}")
         return {"status": "success"}
 
