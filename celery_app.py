@@ -1,4 +1,3 @@
-# backend/celery_app.py
 from celery import Celery
 
 celery_app = Celery(
@@ -17,11 +16,4 @@ celery_app.conf.update(
     worker_concurrency=1,
     task_acks_late=True,
     worker_prefetch_multiplier=1,
-    task_track_started=True,
-    task_time_limit=300,
-    task_soft_time_limit=240,
-    worker_hijack_root_logger=False,
-    # Важно для asyncio
-    worker_pool="prefork",  # Используем prefork для изоляции
-    task_always_eager=False,
 )
