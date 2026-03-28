@@ -63,6 +63,7 @@ async def _process_async(action, symbol, price, stop_loss,
             stop_loss=stop_loss, take_profit_1=take_profit_1,
             take_profit_2=take_profit_2, take_profit_3=take_profit_3,
         )
+        # Уведомление внутри того же loop
         await notify_users_position_opened(
             symbol=symbol, side=action, entry_price=price,
             stop_loss=stop_loss, take_profit_1=take_profit_1,
