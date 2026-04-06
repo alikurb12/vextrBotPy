@@ -118,7 +118,6 @@ async def open_position_for_users_okx(
 
             order_id = order["data"][0]["ordId"]
 
-            # Безопасное получение ID ордеров
             sl_order_id = sl_order["data"][0]["algoId"] if sl_order and sl_order.get("code") == "0" else None
             tp1_order_id = tp_orders[0]["data"][0]["algoId"] if len(tp_orders) > 0 and tp_orders[0].get("code") == "0" else None
             tp2_order_id = tp_orders[1]["data"][0]["algoId"] if len(tp_orders) > 1 and tp_orders[1].get("code") == "0" else None
@@ -152,40 +151,46 @@ async def open_position_for_users_okx(
         except Exception as e:
             print(f"Исключение при открытии сделки: {e}")
 
-async def move_sl_to_breakeven_okx(
-        symbol : str
-):
-    symbol = symbol.replace(".P", "").replace("USDT", "-USDT") + "-SWAP" 
+async def move_sl_to_breakeven_okx(symbol: str):
+    symbol = symbol.replace(".P", "").replace("USDT", "-USDT") + "-SWAP"
     users = await UsersDAO.get_all(exchange="OKX")
     if not users:
         print("Нет активных пользователей с подпиской okx")
-    
+        return
+
     for i, user in enumerate(users, 1):
         if not user.api_key or not user.secret_key:
-            print(f"У пользователя id = {user.user_id}'; username = '{user.usename}' нет АПИ и/или Секрет ключей")
+            print(f"У пользователя id='{user.user_id}' нет API ключей")
             continue
         try:
             trades = await TradesDAO.get_all(user_id=user.user_id, symbol=symbol, status="open")
             if not trades:
                 print(f"У пользователя id='{user.user_id}' нет открытых сделок по '{symbol}'")
                 continue
-            
+
             for trade in trades:
-                await move_sl_to_breakeven(
-                    api_key = user.api_key,
-                    secret_key = user.secret_key,
-                    passphrase = user.passphrase,
-                    symbol = trade.symbol,
-                    position_side = trade.side,
-                    quantity = trade.quantity,
-                    entry_price = trade.entry_price,
+                result = await move_sl_to_breakeven(
+                    api_key=user.api_key,
+                    secret_key=user.secret_key,
+                    passphrase=user.passphrase,
+                    symbol=trade.symbol,
+                    position_side=trade.side,
+                    quantity=trade.quantity,
+                    entry_price=trade.entry_price,
                 )
-                print(f"SL успешно перемещён в безубыток для сделки id='{trade.trade_id}' пользователя id='{user.user_id}'")
+
+                if result is None:
+                    print(f"❌ SL не перемещён для сделки id='{trade.trade_id}' — пропускаем обновление БД")
+                    continue
+
+                print(f"✅ SL перемещён в безубыток для сделки id='{trade.trade_id}'")
+
                 await TradesDAO.update(
-                    trade_id = trade.trade_id,
-                    stop_loss = trade.entry_price,
-                    sl_order_id = None,
-                    status = "sl_moved_to_breakeven",
+                    trade_id=trade.trade_id,
+                    stop_loss=trade.entry_price,
+                    sl_order_id=None,
+                    status="sl_moved_to_breakeven",
                 )
+
         except Exception as e:
-            print(f"Ошибка при перемещении SL в безубыток для пользователя id='{user.user_id}': {e}")
+            print(f"Ошибка при перемещении SL для пользователя id='{user.user_id}': {e}")
