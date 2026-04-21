@@ -1,10 +1,10 @@
-from sqlalchemy import BIGINT, Integer, String, Column, DateTime, Float, ForeignKey
+from sqlalchemy import BIGINT, String, Column, DateTime, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from database.database import Base
+from database.models.users.models import Users
 
 class Trades(Base):
     __tablename__ = "trades"
-
     trade_id = Column(BIGINT, primary_key=True)
     user_id = Column(BIGINT, ForeignKey("users.user_id"))
     order_id = Column(String)
@@ -24,7 +24,6 @@ class Trades(Base):
     status = Column(String)
     created_at = Column(DateTime)
     exchange = Column(String)
-
     user = relationship("Users", back_populates="trades")
 
     def __str__(self):

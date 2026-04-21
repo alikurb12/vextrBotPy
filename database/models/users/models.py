@@ -1,10 +1,9 @@
-from sqlalchemy import BigInteger ,Integer, String, Column, DateTime, Boolean
+from sqlalchemy import BigInteger, String, Column, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from database.database import Base
 
 class Users(Base):
     __tablename__ = "users"
-
     user_id = Column(BigInteger, primary_key=True)
     username = Column(String)
     subscription_end = Column(DateTime)
@@ -18,8 +17,7 @@ class Users(Base):
     email = Column(String)
     terms_accepted = Column(Boolean)
     affirmate_username = Column(String)
-
-    trades = relationship("Trades", back_populates="user")
+    trades = relationship("Trades", back_populates="user", lazy="select")
 
     def __str__(self):
         return self.username

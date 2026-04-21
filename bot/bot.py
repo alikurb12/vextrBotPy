@@ -3,6 +3,10 @@ import logging
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from database.models.trades.models import Trades
+from database.models.users.models import Users  
+
 from instance import bot
 from aiogram import Dispatcher
 from handlers import get_all_routers
