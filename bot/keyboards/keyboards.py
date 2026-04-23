@@ -26,7 +26,6 @@ exchange_selection_keyboard = InlineKeyboardMarkup(
             InlineKeyboardButton(text="Bybit", callback_data="exchange_bybit"),
             InlineKeyboardButton(text="Bitget", callback_data="exchange_bingx"),    
         ],   
-        
     ],
 )
 
@@ -61,25 +60,44 @@ after_registration_keyboard = InlineKeyboardMarkup(
     ],
 )
 
-main_menu_keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="👤 Мой статус", callback_data="my_status"),
+def get_main_menu_kb(is_active: bool = True):
+    pause_text = "▶️ Возобновить торговлю" if not is_active else "⏸ Пауза торговли"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="👤 Мой статус", callback_data="my_status"),
+            ],
+            [
+                InlineKeyboardButton(text="📊 Статистика", callback_data="statistics"),
+            ],
+            [
+                InlineKeyboardButton(text="📋 Открытые позиции", callback_data="get_my_positions"),
+            ],
+            [
+                InlineKeyboardButton(text=pause_text, callback_data="toggle_trading"),
+            ],
+            [
+                InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
+            ],
         ],
-        [
-            InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
-        ],
-        [
-            InlineKeyboardButton(text="📊 Открытые позиции", callback_data="get_my_positions")
-        ],
-    ],
-)
+    )
+
+# Оставляем старую для обратной совместимости
+main_menu_keyboard = get_main_menu_kb()
 
 my_status_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(text="🔙", callback_data="main_menu"),
             InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
+        ]
+    ],
+)
+
+statistics_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔙 Назад", callback_data="main_menu"),
         ]
     ],
 )

@@ -11,6 +11,8 @@ from .check_payment import router as check_payment_router
 from .process_promo_code import router as process_promo_code_router
 from .process_exchange_selection import router as process_exchange_selection_router
 from .get_my_positions import router as get_my_positions_router
+from .toggle_trading import router as toggle_trading_router
+from .statistics import router as statistics_router
 
 
 def get_all_routers():
@@ -28,4 +30,6 @@ def get_all_routers():
         process_promo_code_router,
         process_exchange_selection_router,
         get_my_positions_router,
+        toggle_trading_router,
+        statistics_router,
     ]

@@ -17,6 +17,7 @@ class Users(Base):
     email = Column(String)
     terms_accepted = Column(Boolean)
     affirmate_username = Column(String)
+    is_active = Column(Boolean, default=True)  # для паузы торговли
     trades = relationship("Trades", back_populates="user", lazy="select")
 
     def __str__(self):

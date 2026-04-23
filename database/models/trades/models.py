@@ -1,4 +1,4 @@
-from sqlalchemy import BIGINT, String, Column, DateTime, Float, ForeignKey
+from sqlalchemy import BIGINT, String, Column, DateTime, Float, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database.database import Base
 from database.models.users.models import Users
@@ -24,6 +24,11 @@ class Trades(Base):
     status = Column(String)
     created_at = Column(DateTime)
     exchange = Column(String)
+    # Новые поля для аналитики
+    closed_at = Column(DateTime, nullable=True)
+    close_price = Column(Float, nullable=True)
+    pnl = Column(Float, nullable=True)
+    pnl_percent = Column(Float, nullable=True)
     user = relationship("Users", back_populates="trades")
 
     def __str__(self):

@@ -168,7 +168,7 @@ async def move_sl_to_breakeven_for_all_users(
                     sl_order_id = int(trade.sl_order_id),
                 )
                 print(f"SL успешно перемещён в безубыток для сделки id='{trade.trade_id}' пользователя id='{user.user_id}'")
-                TradesDAO.update(
+                await TradesDAO.update(
                     trade_id = trade.trade_id,
                     stop_loss = trade.entry_price,
                     sl_order_id = None,
