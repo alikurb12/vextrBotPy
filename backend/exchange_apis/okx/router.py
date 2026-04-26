@@ -37,7 +37,7 @@ async def open_position_for_users_okx(
             existing_trades = await TradesDAO.get_all(user_id=user.user_id, symbol=symbol, status="open")
             if existing_trades:
                 for trade in existing_trades:
-                    print(f"У пользователя id='{user.user_id}' уже есть открытая сделка по {symbol}. Переворачиваем сделку")
+                    print(f"У пользователя id='{user.user_id}' уже есть открытая сделка по {symbol}. Закрываем старую запись в БД")
                     try:
                         await close_position(
                             api_key=user.api_key,
@@ -46,11 +46,14 @@ async def open_position_for_users_okx(
                             symbol=symbol,
                             position_syde="short" if side == "long" else "long",
                         )
-                        print(f"Сделка id='{trade.trade_id}' пользователя id='{user.user_id}' успешно закрыта.")
-                        await TradesDAO.delete(trade_id=trade.trade_id)
                     except Exception as e:
-                        print(f"Ошибка при закрытии сделки пользователя id='{user.user_id}': {e}")
-                        continue
+                        print(f"Ошибка при закрытии позиции на бирже: {e}")
+                    await TradesDAO.update(
+                        trade_id=trade.trade_id,
+                        status="closed",
+                        closed_at=datetime.datetime.now(),
+                    )
+                    
             user_balance = await get_balance(
                 api_key=user.api_key, 
                 secret_key=user.secret_key,
