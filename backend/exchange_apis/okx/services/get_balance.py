@@ -15,7 +15,15 @@ async def get_balance(
         )
         result = client.get_account_balance()
         if result["code"] == "0":
-            return result["data"][0].get("details")[2].get("availBal")
+            details = result["data"][0].get("details", [])
+            # Ищем USDT по имени, не по индексу
+            for item in details:
+                if item.get("ccy") == "USDT":
+                    balance = item.get("availBal")
+                    print(f"OKX USDT баланс: {balance}")
+                    return balance
+            print(f"USDT не найден в details: {details}")
+            return None
         else:
             print(f"Ошибка при получении баланса: {result['msg']}")
             return None
