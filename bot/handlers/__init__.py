@@ -13,6 +13,7 @@ from .process_exchange_selection import router as process_exchange_selection_rou
 from .get_my_positions import router as get_my_positions_router
 from .toggle_trading import router as toggle_trading_router
 from .statistics import router as statistics_router
+from .sync_trades import router as sync_trades_router
 
 
 def get_all_routers():
@@ -32,4 +33,5 @@ def get_all_routers():
         get_my_positions_router,
         toggle_trading_router,
         statistics_router,
+        sync_trades_router,
     ]

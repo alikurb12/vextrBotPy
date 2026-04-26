@@ -79,6 +79,9 @@ def get_main_menu_kb(is_active: bool = True):
             [
                 InlineKeyboardButton(text="🔑 Сбросить API ключи", callback_data="reset_api"),
             ],
+            [
+                InlineKeyboardButton(text="🔄 Синхронизировать позиции", callback_data="sync_trades"),
+            ],
         ],
     )
 
