@@ -47,12 +47,17 @@ async def open_position_for_users_okx(
                             position_syde="short" if side == "long" else "long",
                         )
                     except Exception as e:
-                        print(f"Ошибка при закрытии позиции на бирже: {e}")
-                    await TradesDAO.update(
-                        trade_id=trade.trade_id,
-                        status="closed",
-                        closed_at=datetime.datetime.now(),
-                    )
+                        print(f"Ошибка при закрытии позиции на бирже (игнорируем): {e}")
+                    
+                    try:
+                        await TradesDAO.update(
+                            trade_id=trade.trade_id,
+                            status="closed",
+                            closed_at=datetime.datetime.now(),
+                        )
+                        print(f"Сделка id={trade.trade_id} закрыта в БД")
+                    except Exception as db_err:
+                        print(f"Ошибка обновления БД для trade_id={trade.trade_id}: {db_err}")
                     
             user_balance = await get_balance(
                 api_key=user.api_key, 
