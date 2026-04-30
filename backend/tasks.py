@@ -17,12 +17,25 @@ def process_signal(self, signal_data):
         take_profit_2 = signal_data.get('take_profit_2')
         take_profit_3 = signal_data.get('take_profit_3')
 
+        # Индикаторы
+        rsi = signal_data.get('rsi')
+        macd = signal_data.get('macd')
+        macd_signal = signal_data.get('macd_signal')
+        atr = signal_data.get('atr')
+        ema_fast = signal_data.get('ema_fast')
+        ema_slow = signal_data.get('ema_slow')
+        volume = signal_data.get('volume')
+        timeframe = signal_data.get('timeframe')
+
         logger.info(f"⚙️ Обработка сигнала: {action} {symbol}")
 
         asyncio.run(_process_async(
             action=action, symbol=symbol, price=price,
             stop_loss=stop_loss, take_profit_1=take_profit_1,
             take_profit_2=take_profit_2, take_profit_3=take_profit_3,
+            rsi=rsi, macd=macd, macd_signal=macd_signal,
+            atr=atr, ema_fast=ema_fast, ema_slow=ema_slow,
+            volume=volume, timeframe=timeframe,
         ))
 
         logger.info(f"✅ Сигнал обработан: {action} {symbol}")
@@ -33,14 +46,18 @@ def process_signal(self, signal_data):
         raise self.retry(exc=e, countdown=5)
 
 
-async def _process_async(action, symbol, price, stop_loss,
-                          take_profit_1, take_profit_2, take_profit_3):
+async def _process_async(
+    action, symbol, price, stop_loss,
+    take_profit_1, take_profit_2, take_profit_3,
+    rsi=None, macd=None, macd_signal=None,
+    atr=None, ema_fast=None, ema_slow=None,
+    volume=None, timeframe=None,
+):
     from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
     from sqlalchemy.orm import sessionmaker
     import database.database as db_module
     from config.config import settings
 
-    # Создаём свежий engine и session_maker для этого event loop
     engine = create_async_engine(
         settings.DATABASE_URL,
         pool_size=1,
@@ -48,8 +65,6 @@ async def _process_async(action, symbol, price, stop_loss,
         pool_reset_on_return="rollback",
     )
     session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-    # Заменяем глобальные переменные — BaseDao использует их через lazy import
     db_module.engine = engine
     db_module.async_session_maker = session_maker
 
@@ -60,6 +75,7 @@ async def _process_async(action, symbol, price, stop_loss,
         from backend.exchange_apis.bingx.router import move_sl_to_breakeven_for_all_users
         from backend.exchange_apis.okx.router import move_sl_to_breakeven_okx
         from backend.utils.send_notification import notify_users_sl_moved_to_breakeven
+        from backend.services.save_successful_trade import save_successful_trades
 
         if action in ("BUY", "SELL"):
             await open_position_for_users_bingx(
@@ -79,6 +95,13 @@ async def _process_async(action, symbol, price, stop_loss,
             )
 
         elif action == "MOVE_SL":
+            # Сохраняем успешные сделки (TP1 сработал)
+            await save_successful_trades(
+                symbol=symbol,
+                rsi=rsi, macd=macd, macd_signal=macd_signal,
+                atr=atr, ema_fast=ema_fast, ema_slow=ema_slow,
+                volume=volume, timeframe=timeframe,
+            )
             await notify_users_sl_moved_to_breakeven(symbol=symbol)
             await move_sl_to_breakeven_for_all_users(symbol=symbol)
             await move_sl_to_breakeven_okx(symbol=symbol)

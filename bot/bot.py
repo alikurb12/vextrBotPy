@@ -5,7 +5,8 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from database.models.trades.models import Trades
-from database.models.users.models import Users  
+from database.models.users.models import Users
+from database.models.successful_trades.models import SuccessfulTrades
 
 from instance import bot
 from aiogram import Dispatcher

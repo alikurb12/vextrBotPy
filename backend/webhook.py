@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 from backend.utils.signal_shema import SignalSchema
 from backend.admin.auth import AdminAuth
-from backend.tasks import process_signal  # Импортируем Celery задачу
+from backend.tasks import process_signal
 from sqladmin import Admin
 from database.database import engine
 from backend.admin.config import configure_admin_routes
@@ -38,16 +38,7 @@ async def root():
         }
     }
 
-@app.post("/webhook", openapi_extra={
-    "requestBody": {
-        "content": {
-            "application/json": {
-                "schema": SignalSchema.model_json_schema()
-            }
-        },
-        "required": True,
-    }
-})
+@app.post("/webhook")
 async def webhook(request: Request):
     raw = await request.body()
     logger.info(f"📩 Raw webhook: {raw.decode()}")
@@ -59,8 +50,7 @@ async def webhook(request: Request):
         return JSONResponse(status_code=422, content={"error": str(e)})
 
     logger.info(f"✅ Получен сигнал: action={data.action}, symbol={data.symbol}")
-    
-    # Подготавливаем данные для Celery
+
     signal_data = {
         "action": data.action,
         "symbol": data.symbol,
@@ -69,14 +59,20 @@ async def webhook(request: Request):
         "take_profit_1": data.take_profit_1,
         "take_profit_2": data.take_profit_2,
         "take_profit_3": data.take_profit_3,
+        # Индикаторы
+        "rsi": data.rsi,
+        "macd": data.macd,
+        "macd_signal": data.macd_signal,
+        "atr": data.atr,
+        "ema_fast": data.ema_fast,
+        "ema_slow": data.ema_slow,
+        "volume": data.volume,
+        "timeframe": data.timeframe,
     }
-    
-    # Отправляем задачу в Celery вместо Redis
+
     try:
         task = process_signal.delay(signal_data)
         logger.info(f"📬 Сигнал отправлен в Celery. Task ID: {task.id}")
-        
-        # Опционально: можно вернуть ID задачи для отслеживания
         return {
             "message": "Signal processed successfully",
             "task_id": task.id,
@@ -86,58 +82,10 @@ async def webhook(request: Request):
     except Exception as e:
         logger.error(f"❌ Ошибка отправки в Celery: {e}")
         return JSONResponse(
-            status_code=500, 
+            status_code=500,
             content={"error": f"Failed to process signal: {str(e)}"}
         )
 
 @app.get("/health")
 async def health():
-    """Проверка здоровья сервиса и Celery"""
-    from backend.tasks import process_signal
-    try:
-        # Проверяем, что Celery доступен
-        test_task = process_signal.delay({
-            "action": "TEST",
-            "symbol": "HEALTH_CHECK"
-        })
-        celery_status = "ok" if test_task.id else "error"
-    except Exception as e:
-        celery_status = f"error: {e}"
-    
-    return {
-        "result": "OK",
-        "celery": celery_status,
-        "service": "vextr_api"
-    }
-
-@app.get("/task/{task_id}")
-async def get_task_status(task_id: str):
-    """Получение статуса задачи по ID"""
-    from celery.result import AsyncResult
-    from celery_app import celery_app
-    
-    try:
-        task = AsyncResult(task_id, app=celery_app)
-        
-        response = {
-            "task_id": task_id,
-            "status": task.status,
-            "ready": task.ready(),
-        }
-        
-        if task.successful():
-            response["result"] = task.result
-        elif task.failed():
-            response["error"] = str(task.info)
-        elif task.pending():
-            response["info"] = "Task is pending..."
-        elif task.started():
-            response["info"] = "Task started..."
-            
-        return response
-    except Exception as e:
-        logger.error(f"Ошибка получения статуса задачи: {e}")
-        return JSONResponse(
-            status_code=404,
-            content={"error": f"Task not found: {str(e)}"}
-        )
+    return {"result": "OK", "service": "vextr_api"}
