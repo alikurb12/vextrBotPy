@@ -28,17 +28,69 @@ configure_admin_routes(admin)
 
 @app.get("/")
 async def root():
-    return {
-        "message": "Vextr Bot API",
-        "endpoints": {
-            "/webhook": "POST - Receive trading signals",
-            "/health": "GET - Health check",
-            "/admin": "Admin panel",
-            "/docs": "Swagger documentation"
-        }
-    }
+    return {"message": "Vextr Bot API"}
 
-@app.post("/webhook")
+@app.post("/webhook", openapi_extra={
+    "requestBody": {
+        "content": {
+            "application/json": {
+                "schema": SignalSchema.model_json_schema(),
+                "examples": {
+                    "BUY": {
+                        "summary": "BUY сигнал",
+                        "value": {
+                            "action": "BUY",
+                            "symbol": "BTCUSDT.P",
+                            "price": 65000.0,
+                            "stop_loss": 63000.0,
+                            "take_profit_1": 67000.0,
+                            "take_profit_2": 69000.0,
+                            "take_profit_3": 72000.0,
+                            "rsi": 62.5,
+                            "ema_fast": 64800.0,
+                            "ema_slow": 63500.0,
+                            "volume": 1250.5,
+                            "atr": 850.0,
+                            "macd": 120.5,
+                            "macd_signal": 95.3,
+                            "timeframe": "60"
+                        }
+                    },
+                    "SELL": {
+                        "summary": "SELL сигнал",
+                        "value": {
+                            "action": "SELL",
+                            "symbol": "BTCUSDT.P",
+                            "price": 65000.0,
+                            "stop_loss": 67000.0,
+                            "take_profit_1": 63000.0,
+                            "take_profit_2": 61000.0,
+                            "take_profit_3": 58000.0,
+                            "rsi": 38.2,
+                            "ema_fast": 65200.0,
+                            "ema_slow": 66100.0,
+                            "volume": 980.3,
+                            "atr": 820.0,
+                            "macd": -110.2,
+                            "macd_signal": -85.1,
+                            "timeframe": "60"
+                        }
+                    },
+                    "MOVE_SL": {
+                        "summary": "MOVE_SL сигнал",
+                        "value": {
+                            "action": "MOVE_SL",
+                            "symbol": "BTCUSDT.P",
+                            "price": 65000.0,
+                            "stop_loss": 65000.0
+                        }
+                    }
+                }
+            }
+        },
+        "required": True,
+    }
+})
 async def webhook(request: Request):
     raw = await request.body()
     logger.info(f"📩 Raw webhook: {raw.decode()}")
@@ -59,7 +111,6 @@ async def webhook(request: Request):
         "take_profit_1": data.take_profit_1,
         "take_profit_2": data.take_profit_2,
         "take_profit_3": data.take_profit_3,
-        # Индикаторы
         "rsi": data.rsi,
         "macd": data.macd,
         "macd_signal": data.macd_signal,
