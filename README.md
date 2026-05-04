@@ -7,7 +7,7 @@ An automated trading system that receives signals from TradingView via webhook a
 ## ✨ How It Works
 
 ```
-TradingView Alert
+TradingView Alert (with RSI, MACD, ATR, EMA, Volume)
       ↓
 POST /webhook  (FastAPI)
       ↓
@@ -15,10 +15,12 @@ Signal added to Redis queue
       ↓
 Celery Worker processes one by one
       ↓
-   BUY / SELL → Open position on BingX + OKX for all users
+   BUY / SELL → Sync trades with exchange (close stale DB records)
+                → Open position on BingX + OKX for all active users
                 → Notify users via Telegram
       ↓
-   MOVE_SL    → Move Stop Loss to breakeven on BingX + OKX
+   MOVE_SL    → Save trade to ML dataset (successful_trades)
+                → Move Stop Loss to breakeven on BingX + OKX
                 → Notify users via Telegram
 ```
 
@@ -33,9 +35,33 @@ Celery Worker processes one by one
 | Telegram bot | **aiogram** |
 | Exchanges | **BingX API, OKX API** |
 | Database | **PostgreSQL + SQLAlchemy + Alembic** |
+| Charts & Analytics | **Matplotlib** |
 | Web server | **Nginx + SSL (Let's Encrypt)** |
 | Admin panel | **SQLAdmin** |
 | Language | **Python 3.10+** |
+
+---
+
+## 🆕 New Features
+
+### ⏸ Trading Pause
+Users can pause and resume auto-trading directly from the Telegram bot. When paused, no new positions will be opened for that user.
+
+### 📊 Statistics & Charts
+The bot generates personal trading statistics including:
+- Total trades, win rate, profit/loss
+- Best and worst trades
+- Equity curve chart (cumulative P&L over time)
+- P&L bar chart per trade
+
+### 🔄 Trade Synchronization
+Automatically syncs open trades in the database with real positions on the exchange. Stale records (positions that no longer exist on the exchange) are automatically closed in the DB.
+
+### 🧠 ML Dataset Collection
+Every time a MOVE_SL signal is received (meaning TP1 was hit), the trade is saved to a `successful_trades` table with full technical indicator context for future ML model training:
+- RSI, MACD, ATR, EMA Fast/Slow, Volume
+- SL/TP distances in %, Risk/Reward ratio
+- Timeframe, entry price, side, exchange
 
 ---
 
@@ -47,9 +73,9 @@ vextrBotPy/
 │   ├── webhook.py                          # FastAPI entry point
 │   ├── tasks.py                            # Celery tasks
 │   ├── admin/
-│   │   ├── auth.py                         # Admin authentication
-│   │   ├── config.py                       # Admin configuration
-│   │   └── models.py                       # Admin model views
+│   │   ├── auth.py
+│   │   ├── config.py
+│   │   └── models.py
 │   ├── exchange_apis/
 │   │   ├── bingx/
 │   │   │   ├── router.py
@@ -67,20 +93,34 @@ vextrBotPy/
 │   │           ├── open_position.py
 │   │           ├── set_sl_order.py
 │   │           ├── set_tp_order.py
+│   │           ├── move_sl_to_breakeven.py
 │   │           ├── get_balance.py
+│   │           ├── get_open_positions.py
 │   │           ├── get_symbol_info.py
 │   │           ├── set_leverage.py
 │   │           └── close_position.py
+│   ├── services/
+│   │   ├── sync_trades.py                  # Sync DB trades with exchange
+│   │   └── save_successful_trade.py        # Save TP1+ trades to ML dataset
 │   └── utils/
-│       ├── signal_shema.py                 # Webhook payload schema
-│       └── send_notification.py            # Telegram notifications
+│       ├── signal_shema.py                 # Webhook payload schema (with indicators)
+│       └── send_notification.py
 ├── bot/
-│   ├── bot.py                              # Telegram bot entry point
+│   ├── bot.py
 │   ├── instance.py
 │   ├── handlers/
+│   │   ├── start.py
+│   │   ├── main_menu.py
+│   │   ├── my_status.py
+│   │   ├── statistics.py                   # 📊 Statistics & charts
+│   │   ├── toggle_trading.py               # ⏸ Pause/resume trading
+│   │   ├── sync_trades.py                  # 🔄 Manual sync
+│   │   ├── get_my_positions.py
+│   │   ├── registration.py
+│   │   ├── moderation.py
+│   │   └── ...
 │   ├── keyboards/
-│   ├── states/
-│   └── utils/
+│   └── states/
 ├── database/
 │   ├── database.py
 │   ├── dao/
@@ -89,13 +129,14 @@ vextrBotPy/
 │       ├── users/
 │       ├── payments/
 │       ├── trades/
+│       ├── successful_trades/              # 🧠 ML dataset table
 │       └── affiliate_applications/
 ├── alembic/
 │   ├── env.py
 │   └── versions/
 ├── config/
 │   └── config.py
-├── celery_app.py                           # Celery configuration
+├── celery_app.py
 ├── .env
 └── requirements.txt
 ```
@@ -128,7 +169,6 @@ pip install -r requirements.txt
 ### 4. Install and start Redis
 
 ```bash
-# Ubuntu/Debian
 sudo apt install redis-server -y
 sudo systemctl enable redis-server
 sudo systemctl start redis-server
@@ -206,13 +246,13 @@ Three systemd services are used in production:
 
 | Service | Description |
 |---------|-------------|
-| `vextr_webhook` | FastAPI webhook server |
+| `vextr_api` | FastAPI webhook server |
 | `vextr_celery` | Celery worker for signal processing |
 | `vextr_bot` | Telegram bot |
 
 ```bash
-sudo systemctl start vextr_webhook vextr_celery vextr_bot
-sudo systemctl enable vextr_webhook vextr_celery vextr_bot
+sudo systemctl start vextr_api vextr_celery vextr_bot
+sudo systemctl enable vextr_api vextr_celery vextr_bot
 ```
 
 ---
@@ -221,7 +261,7 @@ sudo systemctl enable vextr_webhook vextr_celery vextr_bot
 
 ### `POST /webhook`
 
-Receives trading signals from TradingView.
+Receives trading signals from TradingView. Supports technical indicators for ML dataset collection.
 
 **Request body:**
 
@@ -233,7 +273,15 @@ Receives trading signals from TradingView.
   "stop_loss": 63000.0,
   "take_profit_1": 67000.0,
   "take_profit_2": 69000.0,
-  "take_profit_3": 72000.0
+  "take_profit_3": 72000.0,
+  "rsi": 62.5,
+  "ema_fast": 64800.0,
+  "ema_slow": 63500.0,
+  "volume": 1250.5,
+  "atr": 850.0,
+  "macd": 120.5,
+  "macd_signal": 95.3,
+  "timeframe": "60"
 }
 ```
 
@@ -241,25 +289,16 @@ Receives trading signals from TradingView.
 
 | Action | Description |
 |--------|-------------|
-| `BUY` | Open a long position for all users |
-| `SELL` | Open a short position for all users |
-| `MOVE_SL` | Move Stop Loss to breakeven for all users |
-
-**Response:**
-
-```json
-{
-  "message": "Signal queued successfully"
-}
-```
+| `BUY` | Open a long position for all active users |
+| `SELL` | Open a short position for all active users |
+| `MOVE_SL` | Move Stop Loss to breakeven + save to ML dataset |
 
 ### `GET /health`
 
-Health check endpoint.
-
 ```json
 {
-  "result": "OK"
+  "result": "OK",
+  "service": "vextr_api"
 }
 ```
 
@@ -271,8 +310,9 @@ Available at `/admin` — protected by username and password.
 
 Features:
 - View and manage users
-- Monitor subscriptions
-- Track open trades
+- Monitor subscriptions and payments
+- Track open and closed trades
+- View ML dataset (successful trades)
 
 ---
 
@@ -283,8 +323,34 @@ Features:
 | Registration | Register with email and exchange selection |
 | Subscription | View status and manage payments |
 | Promo codes | Apply discount codes |
+| My Status | View subscription info and balance |
 | Positions | View currently open positions |
+| **Statistics** | View win rate, P&L, equity curve chart |
+| **Pause Trading** | Pause/resume auto-trading |
+| **Sync Positions** | Sync DB with real exchange positions |
 | Moderation | Admin tools for user management |
+
+---
+
+## 🧠 ML Dataset
+
+The `successful_trades` table accumulates data for training a prediction model. A record is saved every time TP1 is hit (MOVE_SL signal received).
+
+**Features collected:**
+
+| Feature | Description |
+|---------|-------------|
+| `rsi` | RSI at signal time |
+| `macd` / `macd_signal` | MACD values |
+| `atr` | Volatility (ATR) |
+| `ema_fast` / `ema_slow` | EMA values |
+| `volume` | Candle volume |
+| `sl_distance_pct` | SL distance from entry in % |
+| `tp1_distance_pct` | TP1 distance from entry in % |
+| `risk_reward` | Risk/reward ratio |
+| `side` | long / short |
+| `timeframe` | Signal timeframe |
+| `tps_hit` | Number of TPs hit (1, 2 or 3) |
 
 ---
 
