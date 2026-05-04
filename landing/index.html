@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VextrBot — Automated Trading Signal Bot</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #18181f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --accent: #00e5a0;
+    --accent2: #00b8ff;
+    --accent3: #7c6fff;
+    --text: #f0f0f8;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --font: 'Space Grotesk', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.18;
+  }
+  .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; left: -200px; }
+  .orb-2 { width: 500px; height: 500px; background: var(--accent2); bottom: -200px; right: -100px; }
+  .orb-3 { width: 400px; height: 400px; background: var(--accent3); top: 40%; left: 50%; transform: translate(-50%, -50%); }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--accent) !important;
+    color: #0a0a0f !important;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600 !important;
+    font-size: 14px;
+    transition: opacity 0.2s, transform 0.2s !important;
+  }
+
+  .nav-cta:hover { opacity: 0.9 !important; transform: translateY(-1px); }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.25);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--mono);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    letter-spacing: 0.02em;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 7vw, 80px);
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    max-width: 900px;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-desc {
+    font-size: 18px;
+    color: var(--text2);
+    max-width: 560px;
+    margin-bottom: 48px;
+    line-height: 1.7;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+  }
+
+  .btn:hover { transform: translateY(-2px); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+    box-shadow: 0 0 30px rgba(0,229,160,0.3);
+  }
+
+  .btn-primary:hover { box-shadow: 0 0 40px rgba(0,229,160,0.5); }
+
+  .btn-secondary {
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border2);
+  }
+
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-top: 80px;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .flow-box {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--mono);
+    color: var(--text2);
+    white-space: nowrap;
+  }
+
+  .flow-box.accent { border-color: rgba(0,229,160,0.4); color: var(--accent); background: rgba(0,229,160,0.06); }
+  .flow-box.blue { border-color: rgba(0,184,255,0.4); color: var(--accent2); background: rgba(0,184,255,0.06); }
+
+  .flow-arrow {
+    color: var(--text3);
+    font-size: 18px;
+    padding: 0 8px;
+    margin-top: -8px;
+  }
+
+  /* FEATURES */
+  .features { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+
+  .section-sub {
+    font-size: 17px;
+    color: var(--text2);
+    max-width: 560px;
+    margin-bottom: 64px;
+    line-height: 1.7;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,229,160,0.03), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .feature-card:hover { border-color: var(--border2); transform: translateY(-4px); }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .feature-icon.green { background: rgba(0,229,160,0.1); }
+  .feature-icon.blue { background: rgba(0,184,255,0.1); }
+  .feature-icon.purple { background: rgba(124,111,255,0.1); }
+  .feature-icon.amber { background: rgba(255,184,0,0.1); }
+
+  .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.3px; }
+  .feature-card p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+  /* TECH STACK */
+  .tech { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .tech-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .tech-item:hover { border-color: var(--border2); }
+
+  .tech-item .tech-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .tech-item .tech-role { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+
+  /* SIGNAL */
+  .signal-section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+
+  .signal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) { .signal-grid { grid-template-columns: 1fr; } }
+
+  .code-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .code-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .code-dot.red { background: #ff5f57; }
+  .code-dot.yellow { background: #ffbd2e; }
+  .code-dot.green { background: #28c840; }
+
+  .code-title { font-size: 12px; color: var(--text3); font-family: var(--mono); margin-left: 8px; }
+
+  .code-body {
+    padding: 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .code-key { color: #7c6fff; }
+  .code-str { color: #00e5a0; }
+  .code-num { color: #00b8ff; }
+  .code-comment { color: var(--text3); }
+
+  /* STATS */
+  .stats { padding: 80px 24px; }
+
+  .stats-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2px;
+    background: var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .stat-item {
+    background: var(--bg2);
+    padding: 40px 32px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label { font-size: 14px; color: var(--text2); }
+
+  /* ML SECTION */
+  .ml-section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+
+  .ml-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 48px;
+  }
+
+  .ml-tag {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ml-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* CTA */
+  .cta { padding: 120px 24px; text-align: center; }
+
+  .cta-card {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 24px;
+    padding: 64px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .cta h2 { font-size: 40px; font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
+  .cta p { font-size: 16px; color: var(--text2); margin-bottom: 40px; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  footer .footer-logo { font-weight: 700; font-size: 18px; }
+  footer p { font-size: 13px; color: var(--text3); }
+
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { color: var(--text3); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero > * { animation: fadeUp 0.6s ease both; }
+  .hero-badge { animation-delay: 0.1s; }
+  .hero h1 { animation-delay: 0.2s; }
+  .hero-desc { animation-delay: 0.3s; }
+  .hero-buttons { animation-delay: 0.4s; }
+  .flow { animation-delay: 0.5s; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    VextrBot
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Возможности</a></li>
+    <li><a href="#tech">Технологии</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#ml">ML Датасет</a></li>
+    <li><a href="https://github.com/alikurb12/vextrBotPy" class="nav-cta">GitHub →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">v1.0 — Live on OKX & BingX</div>
+
+  <h1>Автоматизируй <span>торговлю</span><br>по сигналам TradingView</h1>
+
+  <p class="hero-desc">
+    VextrBot получает сигналы через webhook, открывает позиции на биржах для всех пользователей и управляет рисками — автоматически.
+  </p>
+
+  <div class="hero-buttons">
+    <a href="https://github.com/alikurb12/vextrBotPy" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+    <a href="https://t.me/vext_trade_bot" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.26 13.6l-2.968-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.896.959z"/></svg>
+      Telegram Bot
+    </a>
+  </div>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-box accent">TradingView</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-box blue">POST /webhook</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-box">Celery Queue</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-box accent">OKX + BingX</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-box blue">Telegram Notify</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num">2</div>
+      <div class="stat-label">биржи — OKX и BingX</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">3</div>
+      <div class="stat-label">уровня тейк-профита</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">пользователей одновременно</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">ML</div>
+      <div class="stat-label">датасет для обучения модели</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-label">// возможности</div>
+  <h2 class="section-title">Всё что нужно<br>для автоторговли</h2>
+  <p class="section-sub">От получения сигнала до уведомления пользователя — полностью автоматически.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon green">⚡</div>
+      <h3>Мгновенное исполнение</h3>
+      <p>Сигналы из TradingView обрабатываются через Celery очередь. Позиции открываются для всех пользователей параллельно.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon blue">🛡️</div>
+      <h3>Управление рисками</h3>
+      <p>Автоматический стоп-лосс, три уровня тейк-профита и перенос SL в безубыток при достижении TP1.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon purple">📊</div>
+      <h3>Статистика и графики</h3>
+      <p>Личная статистика каждого пользователя: винрейт, P&L, equity curve и график сделок прямо в Telegram.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon amber">⏸</div>
+      <h3>Пауза торговли</h3>
+      <p>Пользователь может поставить торговлю на паузу в один клик через Telegram бот и возобновить в любой момент.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon green">🔄</div>
+      <h3>Синхронизация позиций</h3>
+      <p>Автоматическая синхронизация базы данных с реальными позициями на бирже. Устаревшие записи закрываются автоматически.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon blue">🤖</div>
+      <h3>ML датасет</h3>
+      <p>Каждая успешная сделка сохраняется с техническими индикаторами для последующего обучения предиктивной модели.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="tech" id="tech">
+  <div class="section-label">// стек технологий</div>
+  <h2 class="section-title">Построено на надёжном стеке</h2>
+  <p class="section-sub">Каждый компонент выбран для максимальной производительности и надёжности.</p>
+
+  <div class="tech-grid">
+    <div class="tech-item">
+      <div class="tech-name">FastAPI</div>
+      <div class="tech-role">webhook server</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">Celery</div>
+      <div class="tech-role">task queue</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">Redis</div>
+      <div class="tech-role">broker</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">aiogram</div>
+      <div class="tech-role">telegram bot</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">PostgreSQL</div>
+      <div class="tech-role">database</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">SQLAlchemy</div>
+      <div class="tech-role">async ORM</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">Alembic</div>
+      <div class="tech-role">migrations</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">Matplotlib</div>
+      <div class="tech-role">charts</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">SQLAdmin</div>
+      <div class="tech-role">admin panel</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">Nginx</div>
+      <div class="tech-role">web server</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">OKX API</div>
+      <div class="tech-role">exchange</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-name">BingX API</div>
+      <div class="tech-role">exchange</div>
+    </div>
+  </div>
+</section>
+
+<!-- API SIGNAL -->
+<section class="signal-section" id="api">
+  <div class="section-label">// webhook api</div>
+  <div class="signal-grid">
+    <div>
+      <h2 class="section-title">Простой<br>JSON сигнал</h2>
+      <p style="color: var(--text2); font-size: 16px; line-height: 1.7; margin-bottom: 24px;">
+        Отправь POST запрос с данными сигнала — бот сделает всё остальное. Поддерживает технические индикаторы для ML датасета.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0,229,160,0.1); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--accent); font-family: var(--mono); font-weight: 700;">B</div>
+          <span style="color: var(--text2); font-size: 14px;"><code style="color: var(--accent); font-family: var(--mono);">BUY</code> — открыть лонг для всех пользователей</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0,184,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--accent2); font-family: var(--mono); font-weight: 700;">S</div>
+          <span style="color: var(--text2); font-size: 14px;"><code style="color: var(--accent2); font-family: var(--mono);">SELL</code> — открыть шорт для всех пользователей</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(124,111,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--accent3); font-family: var(--mono); font-weight: 700;">SL</div>
+          <span style="color: var(--text2); font-size: 14px;"><code style="color: var(--accent3); font-family: var(--mono);">MOVE_SL</code> — перенести стоп в безубыток</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dot red"></div>
+        <div class="code-dot yellow"></div>
+        <div class="code-dot green"></div>
+        <span class="code-title">POST /webhook</span>
+      </div>
+      <div class="code-body">
+        <span style="color: var(--text3)">{</span><br>
+        &nbsp;&nbsp;<span class="code-key">"action"</span>: <span class="code-str">"BUY"</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"symbol"</span>: <span class="code-str">"BTCUSDT.P"</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"price"</span>: <span class="code-num">65000.0</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"stop_loss"</span>: <span class="code-num">63000.0</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"take_profit_1"</span>: <span class="code-num">67000.0</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"take_profit_2"</span>: <span class="code-num">69000.0</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"take_profit_3"</span>: <span class="code-num">72000.0</span>,<br>
+        &nbsp;&nbsp;<span class="code-comment">// технические индикаторы</span><br>
+        &nbsp;&nbsp;<span class="code-key">"rsi"</span>: <span class="code-num">62.5</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"macd"</span>: <span class="code-num">120.5</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"atr"</span>: <span class="code-num">850.0</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"ema_fast"</span>: <span class="code-num">64800.0</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"timeframe"</span>: <span class="code-str">"60"</span><br>
+        <span style="color: var(--text3)">}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ML SECTION -->
+<section class="ml-section" id="ml">
+  <div class="section-label">// machine learning</div>
+  <h2 class="section-title">Накапливаем данные<br>для обучения модели</h2>
+  <p class="section-sub">
+    Каждая успешная сделка (достигшая хотя бы TP1) сохраняется в отдельную таблицу с полным контекстом технических индикаторов.
+  </p>
+
+  <div class="ml-features">
+    <div class="ml-tag">RSI (14)</div>
+    <div class="ml-tag">MACD + Signal</div>
+    <div class="ml-tag">ATR (волатильность)</div>
+    <div class="ml-tag">EMA Fast / Slow</div>
+    <div class="ml-tag">Volume</div>
+    <div class="ml-tag">SL distance %</div>
+    <div class="ml-tag">TP1 distance %</div>
+    <div class="ml-tag">Risk / Reward</div>
+    <div class="ml-tag">Side (long/short)</div>
+    <div class="ml-tag">Timeframe</div>
+    <div class="ml-tag">TPs hit (1/2/3)</div>
+    <div class="ml-tag">P&L / P&L %</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="cta-card">
+    <h2>Посмотри исходный код</h2>
+    <p>Весь проект открыт на GitHub. Дипломная работа по автоматизации торговли на Python.</p>
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <a href="https://github.com/alikurb12/vextrBotPy" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        Открыть на GitHub
+      </a>
+      <a href="https://t.me/vext_trade_bot" class="btn btn-secondary">Telegram Bot</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">VextrBot</div>
+  <p>Дипломный проект — Автоматизация торговли на Python</p>
+  <div class="footer-links">
+    <a href="https://github.com/alikurb12/vextrBotPy">GitHub</a>
+    <a href="https://t.me/vext_trade_bot">Telegram</a>
+  </div>
+</footer>
+
+</body>
+</html>
