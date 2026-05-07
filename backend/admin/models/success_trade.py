@@ -8,6 +8,7 @@ class SuccessTradesAdmin(ModelView, model=SuccessfulTrades):
     column_list = [
         SuccessfulTrades.id,
         SuccessfulTrades.exchange,
+        SuccessfulTrades.symbol,
         SuccessfulTrades.ema_fast,
         SuccessfulTrades.atr,
         SuccessfulTrades.bb_lower,
