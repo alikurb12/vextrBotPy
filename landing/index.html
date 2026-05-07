@@ -480,6 +480,185 @@
     flex-shrink: 0;
   }
 
+  /* RESULTS */
+  .results { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+
+  .results-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+
+  .date-filter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .date-filter span { color: var(--accent); font-weight: 500; }
+
+  .results-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 768px) { .results-hero { grid-template-columns: 1fr; } }
+
+  .result-big {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-big::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .result-big .rb-label { font-size: 13px; color: var(--text3); font-family: var(--mono); margin-bottom: 12px; }
+  .result-big .rb-num {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .result-big .rb-sub { font-size: 14px; color: var(--text2); }
+  .result-big .rb-rub { font-size: 20px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+
+  .coins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .coin-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .coin-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+  .coin-num {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text3);
+    font-family: var(--mono);
+    flex-shrink: 0;
+  }
+
+  .coin-info { flex: 1; min-width: 0; }
+  .coin-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .coin-tf {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--mono);
+    background: var(--bg3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  .coin-tf.h1 { color: var(--accent); }
+  .coin-tf.h4 { color: var(--accent2); }
+
+  /* RISK */
+  .risk-section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+
+  .risk-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) { .risk-grid { grid-template-columns: 1fr; } }
+
+  .risk-text p {
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+
+  .risk-highlight {
+    background: rgba(0,229,160,0.06);
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .risk-highlight p { color: var(--text); margin-bottom: 0; font-size: 15px; }
+
+  .risk-params {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .risk-param {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .risk-param-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .risk-param-icon.green { background: rgba(0,229,160,0.1); }
+  .risk-param-icon.blue { background: rgba(0,184,255,0.1); }
+
+  .risk-param-val { font-size: 28px; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
+  .risk-param-val.green { color: var(--accent); }
+  .risk-param-val.blue { color: var(--accent2); }
+  .risk-param-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
   /* CTA */
   .cta { padding: 120px 24px; text-align: center; }
 
@@ -560,9 +739,10 @@
   </a>
   <ul class="nav-links">
     <li><a href="#features">Возможности</a></li>
-    <li><a href="#tech">Технологии</a></li>
+    <li><a href="#results">Результаты</a></li>
+    <li><a href="#risk">Риски</a></li>
     <li><a href="#api">API</a></li>
-    <li><a href="#ml">ML Датасет</a></li>
+    <li><a href="#ml">ML</a></li>
     <li><a href="https://github.com/alikurb12/vextrBotPy" class="nav-cta">GitHub →</a></li>
   </ul>
 </nav>
@@ -805,6 +985,180 @@
     <div class="ml-tag">Timeframe</div>
     <div class="ml-tag">TPs hit (1/2/3)</div>
     <div class="ml-tag">P&L / P&L %</div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="results" id="results">
+  <div class="results-header">
+    <div>
+      <div class="section-label">// результаты</div>
+      <h2 class="section-title">Результаты за 2025 год</h2>
+      <p class="section-sub" style="margin-bottom: 0;">При начальном депозите $1,000 и стандартных настройках бота.</p>
+    </div>
+    <div class="date-filter">
+      <span>01.01.2025</span>
+      <span style="color: var(--text3)">→</span>
+      <span>31.12.2025</span>
+    </div>
+  </div>
+
+  <div class="results-hero">
+    <div class="result-big">
+      <div class="rb-label">// общая доходность</div>
+      <div class="rb-num">+138.6%</div>
+      <div class="rb-sub">за 9 месяцев торговли</div>
+      <div class="rb-rub">≈ удвоение депозита</div>
+    </div>
+    <div style="display: grid; grid-template-rows: 1fr 1fr; gap: 20px;">
+      <div class="result-big">
+        <div class="rb-label">// прибыль в долларах</div>
+        <div class="rb-num" style="font-size: 40px;">+$1,386</div>
+        <div class="rb-sub">итоговый баланс $2,386</div>
+      </div>
+      <div class="result-big">
+        <div class="rb-label">// прибыль в рублях</div>
+        <div class="rb-num" style="font-size: 40px;">+127К₽</div>
+        <div class="rb-sub">по курсу ~92 ₽/$ на конец 2025</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 24px;">
+    <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2);">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent); display: inline-block;"></span>
+        1H таймфрейм
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2);">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent2); display: inline-block;"></span>
+        4H таймфрейм
+      </div>
+    </div>
+  </div>
+
+  <div class="coins-grid">
+    <div class="coin-card">
+      <div class="coin-num">1</div>
+      <div class="coin-info">
+        <div class="coin-name">LINK</div>
+        <span class="coin-tf h1">1H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">2</div>
+      <div class="coin-info">
+        <div class="coin-name">AVAX</div>
+        <span class="coin-tf h1">1H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">3</div>
+      <div class="coin-info">
+        <div class="coin-name">SOL</div>
+        <span class="coin-tf h1">1H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">4</div>
+      <div class="coin-info">
+        <div class="coin-name">TIA</div>
+        <span class="coin-tf h1">1H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">5</div>
+      <div class="coin-info">
+        <div class="coin-name">HBAR</div>
+        <span class="coin-tf h1">1H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">6</div>
+      <div class="coin-info">
+        <div class="coin-name">BTC</div>
+        <span class="coin-tf h4">4H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">7</div>
+      <div class="coin-info">
+        <div class="coin-name">AAVE</div>
+        <span class="coin-tf h4">4H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">8</div>
+      <div class="coin-info">
+        <div class="coin-name">INJ</div>
+        <span class="coin-tf h4">4H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">9</div>
+      <div class="coin-info">
+        <div class="coin-name">ADA</div>
+        <span class="coin-tf h4">4H</span>
+      </div>
+    </div>
+    <div class="coin-card">
+      <div class="coin-num">10</div>
+      <div class="coin-info">
+        <div class="coin-name">BNB</div>
+        <span class="coin-tf h4">4H</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RISK -->
+<section class="risk-section" id="risk">
+  <div class="section-label">// управление рисками</div>
+  <div class="risk-grid">
+    <div class="risk-text">
+      <h2 class="section-title" style="margin-bottom: 24px;">Какой риск<br>у VEXTR?</h2>
+
+      <p>VEXTR построен вокруг идеи безопасного и осознанного подхода к рынку. Мы не стремимся за быстрой прибылью — мы создаём инструмент, который позволяет зарабатывать стабильно и без лишнего стресса.</p>
+
+      <div class="risk-highlight">
+        <p>Даже если рынок поведёт себя непредсказуемо, вся сумма на счёте под надёжной защитой, а риск потери остаётся минимальным. Алгоритм делает то, что человек часто не может — спокойно, системно, без паники.</p>
+      </div>
+
+      <p>На такой умеренной нагрузке VEXTR показал отличную динамику — удвоение депозита за 9 месяцев. Это не обещание, а реальные цифры, полученные при стабильной и прозрачной торговле.</p>
+
+      <p style="color: var(--text3); font-size: 14px;">📌 Все отчёты и результаты рассчитаны именно с этими параметрами. Если вы хотите снизить риски, сохранить капитал и при этом получать достойную прибыль — добро пожаловать в VEXTR.</p>
+    </div>
+
+    <div class="risk-params">
+      <div class="risk-param">
+        <div class="risk-param-icon green">💰</div>
+        <div>
+          <div class="risk-param-val green">5%</div>
+          <div class="risk-param-desc">от депозита участвует в каждой сделке. Остальные 95% средств остаются в резерве и не подвергаются риску.</div>
+        </div>
+      </div>
+      <div class="risk-param">
+        <div class="risk-param-icon blue">⚡</div>
+        <div>
+          <div class="risk-param-val blue">10x</div>
+          <div class="risk-param-desc">кредитное плечо используется аккуратно — не для увеличения риска, а для оптимизации доходности.</div>
+        </div>
+      </div>
+      <div class="risk-param">
+        <div class="risk-param-icon green">🛡️</div>
+        <div>
+          <div class="risk-param-val green">3 TP</div>
+          <div class="risk-param-desc">уровня тейк-профита и автоматический перенос стоп-лосса в безубыток при достижении первой цели.</div>
+        </div>
+      </div>
+      <div class="risk-param">
+        <div class="risk-param-icon blue">📈</div>
+        <div>
+          <div class="risk-param-val blue">+138%</div>
+          <div class="risk-param-desc">за 9 месяцев 2025 года при работе с 10 торговыми парами на 1H и 4H таймфреймах.</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
