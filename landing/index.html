@@ -550,25 +550,32 @@
 
   .coins-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
   }
 
   .coin-card {
     background: var(--bg2);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    border-radius: 16px;
+    padding: 24px;
     transition: border-color 0.2s, transform 0.2s;
+    cursor: pointer;
   }
 
-  .coin-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .coin-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+
+  .coin-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .coin-card-left { display: flex; align-items: center; gap: 12px; }
 
   .coin-num {
-    width: 28px; height: 28px;
+    width: 32px; height: 32px;
     border-radius: 8px;
     background: var(--bg3);
     display: flex;
@@ -581,8 +588,7 @@
     flex-shrink: 0;
   }
 
-  .coin-info { flex: 1; min-width: 0; }
-  .coin-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .coin-name { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
   .coin-tf {
     font-size: 11px;
     color: var(--text3);
@@ -592,9 +598,52 @@
     border-radius: 4px;
     display: inline-block;
   }
+  .coin-tf.h1 { color: var(--accent); background: rgba(0,229,160,0.1); }
+  .coin-tf.h4 { color: var(--accent2); background: rgba(0,184,255,0.1); }
 
-  .coin-tf.h1 { color: var(--accent); }
-  .coin-tf.h4 { color: var(--accent2); }
+  .coin-pnl {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+
+  .coin-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .coin-stat { text-align: center; }
+  .coin-stat-val { font-size: 14px; font-weight: 600; color: var(--text); font-family: var(--mono); }
+  .coin-stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .coin-chart { height: 48px; width: 100%; }
+
+  .tab-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active-all { background: rgba(255,255,255,0.1); color: var(--text); border-color: rgba(255,255,255,0.3); }
+  .tab-btn.active-1h { background: rgba(0,229,160,0.1); color: var(--accent); border-color: rgba(0,229,160,0.3); }
+  .tab-btn.active-4h { background: rgba(0,184,255,0.1); color: var(--accent2); border-color: rgba(0,184,255,0.3); }
 
   /* RISK */
   .risk-section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
@@ -1024,8 +1073,7 @@
     </div>
   </div>
 
-  <div style="margin-bottom: 24px;">
-    <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+  <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
       <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2);">
         <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent); display: inline-block;"></span>
         1H таймфрейм
@@ -1035,80 +1083,130 @@
         4H таймфрейм
       </div>
     </div>
+
+  <div class="tab-filter">
+    <button class="tab-btn active-all" onclick="filterCoins('all', this)">Все монеты</button>
+    <button class="tab-btn" onclick="filterCoins('1h', this)">1H таймфрейм</button>
+    <button class="tab-btn" onclick="filterCoins('4h', this)">4H таймфрейм</button>
   </div>
 
-  <div class="coins-grid">
-    <div class="coin-card">
-      <div class="coin-num">1</div>
-      <div class="coin-info">
-        <div class="coin-name">LINK</div>
-        <span class="coin-tf h1">1H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">2</div>
-      <div class="coin-info">
-        <div class="coin-name">AVAX</div>
-        <span class="coin-tf h1">1H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">3</div>
-      <div class="coin-info">
-        <div class="coin-name">SOL</div>
-        <span class="coin-tf h1">1H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">4</div>
-      <div class="coin-info">
-        <div class="coin-name">TIA</div>
-        <span class="coin-tf h1">1H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">5</div>
-      <div class="coin-info">
-        <div class="coin-name">HBAR</div>
-        <span class="coin-tf h1">1H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">6</div>
-      <div class="coin-info">
-        <div class="coin-name">BTC</div>
-        <span class="coin-tf h4">4H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">7</div>
-      <div class="coin-info">
-        <div class="coin-name">AAVE</div>
-        <span class="coin-tf h4">4H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">8</div>
-      <div class="coin-info">
-        <div class="coin-name">INJ</div>
-        <span class="coin-tf h4">4H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">9</div>
-      <div class="coin-info">
-        <div class="coin-name">ADA</div>
-        <span class="coin-tf h4">4H</span>
-      </div>
-    </div>
-    <div class="coin-card">
-      <div class="coin-num">10</div>
-      <div class="coin-info">
-        <div class="coin-name">BNB</div>
-        <span class="coin-tf h4">4H</span>
-      </div>
-    </div>
-  </div>
+  <div class="coins-grid" id="coinsGrid"></div>
+
+  <script>
+  const coins = [
+    { num:1, name:'LINK', tf:'1h', pnl:33.75, pnlUsd:337.53, trades:434, winrate:40.78, drawdown:14.23, profit_factor:1.274,
+      curve:[0,2,-1,3,5,4,7,9,8,12,11,15,14,18,17,20,22,21,25,24,27,26,30,29,33,34] },
+    { num:2, name:'SOL',  tf:'1h', pnl:13.71, pnlUsd:137.39, trades:441, winrate:38.10, drawdown:11.97, profit_factor:1.114,
+      curve:[0,1,-2,2,4,3,5,4,7,8,9,10,11,9,10,12,11,13,12,14,13,14] },
+    { num:3, name:'AVAX', tf:'1h', pnl:15.01, pnlUsd:150.09, trades:395, winrate:36.20, drawdown:15.72, profit_factor:1.131,
+      curve:[0,3,5,4,8,7,10,12,11,15,13,16,15,14,15,14,15] },
+    { num:4, name:'HBAR', tf:'1h', pnl:8.65, pnlUsd:86.55, trades:401, winrate:38.65, drawdown:14.36, profit_factor:1.085,
+      curve:[0,-1,1,2,1,3,5,8,10,12,14,13,15,14,15,12,11,10,9,10,9,8,9] },
+    { num:5, name:'TIA',  tf:'1h', pnl:30.74, pnlUsd:307.38, trades:384, winrate:39.58, drawdown:12.94, profit_factor:1.313,
+      curve:[0,1,2,1,3,5,8,12,16,20,24,26,28,30,28,29,30,31] },
+    { num:6, name:'BTC',  tf:'4h', pnl:1.58, pnlUsd:15.76, trades:55, winrate:34.55, drawdown:8.43, profit_factor:1.081,
+      curve:[0,2,-1,-3,-2,-4,-3,-2,-1,0,1,0,2,1,2] },
+    { num:7, name:'INJ',  tf:'4h', pnl:8.14, pnlUsd:81.41, trades:48, winrate:39.58, drawdown:9.43, profit_factor:1.341,
+      curve:[0,-1,-2,-1,1,3,6,8,7,6,5,6,7,8] },
+    { num:8, name:'ADA',  tf:'4h', pnl:15.16, pnlUsd:151.56, trades:54, winrate:40.74, drawdown:7.00, profit_factor:1.689,
+      curve:[0,2,4,6,8,10,12,14,16,15,14,15,14,15,16,15] },
+    { num:9, name:'BNB',  tf:'4h', pnl:14.86, pnlUsd:148.60, trades:49, winrate:46.94, drawdown:5.43, profit_factor:2.027,
+      curve:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] },
+  ];
+
+  let currentFilter = 'all';
+
+  function drawMiniChart(canvas, curve, color) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width = canvas.offsetWidth || 240;
+    const h = canvas.height = 48;
+    ctx.clearRect(0, 0, w, h);
+    const min = Math.min(...curve);
+    const max = Math.max(...curve);
+    const range = max - min || 1;
+    const pts = curve.map((v, i) => ({
+      x: (i / (curve.length - 1)) * w,
+      y: h - ((v - min) / range) * (h - 8) - 4
+    }));
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, color + '40');
+    grad.addColorStop(1, color + '00');
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.lineTo(pts[pts.length-1].x, h);
+    ctx.lineTo(pts[0].x, h);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  function filterCoins(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.tab-btn').forEach(b => b.className = 'tab-btn');
+    if (filter === 'all') btn.className = 'tab-btn active-all';
+    else if (filter === '1h') btn.className = 'tab-btn active-1h';
+    else btn.className = 'tab-btn active-4h';
+    renderCoins();
+  }
+
+  function renderCoins() {
+    const grid = document.getElementById('coinsGrid');
+    const filtered = currentFilter === 'all' ? coins : coins.filter(c => c.tf === currentFilter);
+    grid.innerHTML = filtered.map(c => {
+      const color = c.tf === '1h' ? '#00e5a0' : '#00b8ff';
+      const tfClass = c.tf === '1h' ? 'h1' : 'h4';
+      const tfLabel = c.tf === '1h' ? '1H' : '4H';
+      return `
+        <div class="coin-card">
+          <div class="coin-card-header">
+            <div class="coin-card-left">
+              <div class="coin-num">${c.num}</div>
+              <div>
+                <div class="coin-name">${c.name}</div>
+                <span class="coin-tf ${tfClass}">${tfLabel}</span>
+              </div>
+            </div>
+            <div class="coin-pnl" style="color:${color}">+${c.pnl}%</div>
+          </div>
+          <div class="coin-stats">
+            <div class="coin-stat">
+              <div class="coin-stat-val">${c.trades}</div>
+              <div class="coin-stat-label">сделок</div>
+            </div>
+            <div class="coin-stat">
+              <div class="coin-stat-val">${c.winrate}%</div>
+              <div class="coin-stat-label">винрейт</div>
+            </div>
+            <div class="coin-stat">
+              <div class="coin-stat-val">${c.drawdown}%</div>
+              <div class="coin-stat-label">просадка</div>
+            </div>
+          </div>
+          <canvas class="coin-chart" data-idx="${coins.indexOf(c)}"></canvas>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.coin-chart').forEach(canvas => {
+      const c = coins[parseInt(canvas.dataset.idx)];
+      const color = c.tf === '1h' ? '#00e5a0' : '#00b8ff';
+      setTimeout(() => drawMiniChart(canvas, c.curve, color), 50);
+    });
+  }
+
+  renderCoins();
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.coin-chart').forEach(canvas => {
+      const c = coins[parseInt(canvas.dataset.idx)];
+      const color = c.tf === '1h' ? '#00e5a0' : '#00b8ff';
+      drawMiniChart(canvas, c.curve, color);
+    });
+  });
+  </script>
 </section>
 
 <!-- RISK -->
