@@ -38,7 +38,6 @@ class SuccessfulTrades(Base):
     bb_upper = Column(Float)
     bb_lower = Column(Float)
     
-    # Доп. признаки для ML
     sl_distance_pct = Column(Float)   # % расстояние от входа до SL
     tp1_distance_pct = Column(Float)  # % расстояние от входа до TP1
     risk_reward = Column(Float)       # соотношение риск/прибыль

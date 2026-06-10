@@ -24,7 +24,6 @@ class Trades(Base):
     status = Column(String)
     created_at = Column(DateTime)
     exchange = Column(String)
-    # Новые поля для аналитики
     closed_at = Column(DateTime, nullable=True)
     close_price = Column(Float, nullable=True)
     pnl = Column(Float, nullable=True)
