@@ -1,6 +1,9 @@
 import asyncio
 import logging
 
+import socket
+socket.has_ipv6 = False
+
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
